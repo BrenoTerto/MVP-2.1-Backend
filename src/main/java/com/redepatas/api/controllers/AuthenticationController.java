@@ -11,13 +11,16 @@ import com.redepatas.api.models.AuthenticationDTO;
 import com.redepatas.api.models.ClientModel;
 import com.redepatas.api.models.ClientRole;
 import com.redepatas.api.models.ConfirmationToken;
+import com.redepatas.api.models.PasswordResetToken;
 import com.redepatas.api.repositories.ClientRepository;
 import com.redepatas.api.repositories.ConfirmationTokenRepository;
+import com.redepatas.api.repositories.PasswordResetTokenRepository;
 import com.redepatas.api.services.AsaasClientService;
 import com.redepatas.api.services.EmailService;
 import com.redepatas.api.services.UserServices;
 
 import jakarta.mail.MessagingException;
+import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 
 import java.time.LocalDateTime;
@@ -61,6 +64,9 @@ public class AuthenticationController {
     private ConfirmationTokenRepository tokenRepository;
 
     @Autowired
+    private PasswordResetTokenRepository passwordResetToken;
+
+    @Autowired
     private UserServices userServices;
 
     @Autowired
@@ -96,11 +102,10 @@ public class AuthenticationController {
     }
 
     public static boolean isCPFValido(String cpf) {
-        // Remove caracteres não numéricos
+
         cpf = cpf.replaceAll("[^\\d]", "");
 
-        // Verifica se tem 11 dígitos ou todos os dígitos iguais (ex: 00000000000)
-        if (cpf.length() != 11 || cpf.matches("(\\d)\\1{10}"))
+        if (cpf.length() != 11 || cpf.matches("(\\d)\1{10}"))
             return false;
 
         try {
@@ -225,7 +230,7 @@ public class AuthenticationController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/recoveryPassword/{email}")
+    @PostMapping("/sendEmailRecovery/{email}")
     public ResponseEntity<Void> sendEmailRecovery(@PathVariable("email") String email) throws MessagingException {
         var client = repository.findByLogin(email);
         ClientModel clientx = (ClientModel) client;
@@ -239,19 +244,22 @@ public class AuthenticationController {
 
     @GetMapping("/validateHash/{hashPuro}")
     public ResponseEntity<String> validarHash(@PathVariable("hashPuro") String hashPuro) {
-        boolean valido = tokenService.validarTokenDeReset(hashPuro);
-        if (!valido) {
+        PasswordResetToken token = tokenService.validarTokenDeReset(hashPuro);
+        if (token == null || token.getExpiration().isBefore(LocalDateTime.now())) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token inválido ou expirado");
         }
         return ResponseEntity.ok("Token válido");
     }
 
-    @PutMapping("/recoveryPassword") //INCOMPLETo!
+    @Transactional
+    @PutMapping("/recoveryPassword")
     public ResponseEntity<String> recoveryPassword(@RequestBody @Valid RecoveryPasswordDto data) {
-        String response = userServices.changePassword('troque aqui', data);
-        if (response.contains("Falha")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        PasswordResetToken token = tokenService.validarTokenDeReset(data.hash());
+        if (token == null || token.getExpiration().isBefore(LocalDateTime.now())) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token inválido ou expirado");
         }
+        String response = userServices.recoveryPassword(token.getEmail(), data.newPassword());
+        passwordResetToken.delete(token);
         return ResponseEntity.ok(response);
     }
 }

@@ -80,20 +80,20 @@ public class TokenService {
         }
     }
 
-    public boolean validarTokenDeReset(String tokenPuro) {
+    public  PasswordResetToken validarTokenDeReset(String tokenPuro) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hashBytes = digest.digest(tokenPuro.getBytes(StandardCharsets.UTF_8));
             String hashCalculado = Base64.getEncoder().encodeToString(hashBytes);
             PasswordResetToken token = tokenRepository.findByTokenHash(hashCalculado);
             if (token == null || token.getExpiration().isBefore(LocalDateTime.now())) {
-                return false;
+                return null;
             }
 
-            return true;
+            return token;
 
         } catch (Exception e) {
-            return false;
+            return null;
         }
     }
 

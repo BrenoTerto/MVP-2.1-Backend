@@ -191,6 +191,15 @@ public class UserServices {
         return "Senha alterada com sucesso";
     }
 
+    public String recoveryPassword(String login, String novaSenha) {
+        var user = repositoryUser.findByLogin(login);
+        var client = (ClientModel) user;
+        String encryptedPassword = new BCryptPasswordEncoder().encode(novaSenha);
+        client.setPassword(encryptedPassword);
+        repositoryUser.save(client);
+        return "Senha alterada com sucesso";
+    }
+
     public String changeAvatar(String login, MultipartFile file) {
         var user = repositoryUser.findByLogin(login);
         if (user == null) {
