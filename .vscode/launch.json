@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Run ApiApplication",
+      "request": "launch",
+      "mainClass": "com.redepatas.api.ApiApplication",
+      "projectName": "api",
+      "envFile": "${workspaceFolder}/.env"
+    }
+  ]
+}
