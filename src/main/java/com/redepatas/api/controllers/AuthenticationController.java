@@ -3,6 +3,7 @@ package com.redepatas.api.controllers;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.redepatas.api.dtos.ChangePasswordDto;
+import com.redepatas.api.dtos.RecoveryPasswordDto;
 import com.redepatas.api.dtos.RegisterDTO;
 import com.redepatas.api.dtos.ReponseLoginDto;
 import com.redepatas.api.infra.security.TokenService;
@@ -16,6 +17,7 @@ import com.redepatas.api.services.AsaasClientService;
 import com.redepatas.api.services.EmailService;
 import com.redepatas.api.services.UserServices;
 
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 
 import java.time.LocalDateTime;
@@ -31,6 +33,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -44,10 +47,13 @@ import org.springframework.web.server.ResponseStatusException;
 public class AuthenticationController {
     @Autowired
     private AuthenticationManager authenticationManager;
+
     @Autowired
     private ClientRepository repository;
+
     @Autowired
     private TokenService tokenService;
+
     @Autowired
     private AsaasClientService asaasClientService;
 
@@ -152,7 +158,7 @@ public class AuthenticationController {
                     LocalDateTime.now().plusMinutes(30),
                     null,
                     newUser);
-            String link = "http://localhost:8080/auth/confirm?token=" + token;
+            String link = "http://26.171.157.156:8080/auth/confirm?token=" + token;
             emailService.enviarConfirmacao(data.login(), data.name(), link);
             tokenRepository.save(confirmationToken);
 
@@ -182,15 +188,14 @@ public class AuthenticationController {
 
         ClientModel user = confirmationToken.getUser();
 
-        
-
         Boolean tipoLogin = isEmail(user.getLogin());
         String idCustomer;
-        String clienteResponse = asaasClientService.criarCliente(user.getName(), user.getCPF(), user.getLogin(), tipoLogin);
-        System.out.println(clienteResponse);
+        String clienteResponse = asaasClientService.criarCliente(user.getName(), user.getCPF(), user.getLogin(),
+                tipoLogin);
 
         if (clienteResponse == null || clienteResponse.contains("erro")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erro ao criar cliente asaas, Erro: " + clienteResponse);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Erro ao criar cliente asaas, Erro: " + clienteResponse);
         }
 
         try {
@@ -198,7 +203,8 @@ public class AuthenticationController {
             JsonNode rootNode = objectMapper.readTree(clienteResponse);
             idCustomer = rootNode.get("id").asText();
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Erro ao processar resposta do Asaas: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Erro ao processar resposta do Asaas: " + e.getMessage());
         }
         user.setIdCustomer(idCustomer);
         confirmationToken.setConfirmedAt(LocalDateTime.now());
@@ -219,4 +225,33 @@ public class AuthenticationController {
         return ResponseEntity.ok(response);
     }
 
+    @PostMapping("/recoveryPassword/{email}")
+    public ResponseEntity<Void> sendEmailRecovery(@PathVariable("email") String email) throws MessagingException {
+        var client = repository.findByLogin(email);
+        ClientModel clientx = (ClientModel) client;
+        if (client != null && clientx.isEmailConfirmado()) {
+            String token = tokenService.generateTokenPassword(email);
+            emailService.enviarRecovery(email, token);
+        }
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/validateHash/{hashPuro}")
+    public ResponseEntity<String> validarHash(@PathVariable("hashPuro") String hashPuro) {
+        boolean valido = tokenService.validarTokenDeReset(hashPuro);
+        if (!valido) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Token inválido ou expirado");
+        }
+        return ResponseEntity.ok("Token válido");
+    }
+
+    @PutMapping("/recoveryPassword") //INCOMPLETo!
+    public ResponseEntity<String> recoveryPassword(@RequestBody @Valid RecoveryPasswordDto data) {
+        String response = userServices.changePassword('troque aqui', data);
+        if (response.contains("Falha")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        }
+        return ResponseEntity.ok(response);
+    }
 }

@@ -6,17 +6,19 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.redepatas.api.dtos.UserDtos.EnderecoDto;
 
+@Service
 public class GoogleGeoUtils {
 
     @Value("${api.key.google.maps}")
-    private static String API_KEY;
+    private String API_KEY;
 
-    public static EnderecoDto reverseGeocode(Double latitude, Double longitude) {
+    public EnderecoDto reverseGeocode(Double latitude, Double longitude) {
         String url = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + latitude + "," + longitude + "&key=" + API_KEY;
         RestTemplate restTemplate = new RestTemplate();
 

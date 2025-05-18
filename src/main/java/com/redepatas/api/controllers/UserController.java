@@ -27,6 +27,9 @@ public class UserController {
     @Autowired
     private UserServices userServices;
 
+    @Autowired
+    private GoogleGeoUtils googleGeoUtils;
+    
     @PutMapping("/updateAddress/{idAddress}")
     public ResponseEntity<String> updateAddress(
             @PathVariable("idAddress") UUID idAddress,
@@ -72,7 +75,7 @@ public class UserController {
         List<EnderecoDto> enderecos = new ArrayList<>(userServices.getAddressesByLogin(login));
 
         if (latitude != null && longitude != null) {
-            EnderecoDto enderecoAtual = GoogleGeoUtils.reverseGeocode(latitude, longitude);
+            EnderecoDto enderecoAtual = googleGeoUtils.reverseGeocode(latitude, longitude);
             enderecos.add(0, enderecoAtual);
         }
 

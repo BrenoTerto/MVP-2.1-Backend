@@ -199,7 +199,6 @@ public class UserServices {
         try {
             MultipartFile webpFile = fileService.convertToWebP(file);
             Map<String, String> response = is3Service.uploadFile(webpFile, "users").getBody();
-            System.out.println(response);
             if (response == null || !response.containsKey("fileUrl")) {
                 throw new RuntimeException("Erro ao fazer upload da imagem para a AWS.");
             }

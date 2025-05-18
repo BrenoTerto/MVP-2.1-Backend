@@ -51,7 +51,7 @@ public class PartnerService {
         ClientRepository clientRepository;
 
         @Value("${api.key.google.maps}")
-        private static String API_KEY;
+        private String API_KEY;
 
         public String createPartner(PartnerRecordDto dto) {
 
@@ -153,7 +153,6 @@ public class PartnerService {
                 } else {
                         partners = partnerRepository.findByEndereco_Cidade(enderecoSelecionado.getCidade());
                 }
-                System.out.println(enderecoSelecionado.getCidade());
                 if (porte != null && !porte.isBlank()) {
                         partners = partners.stream()
                                         .filter(partner -> partner.getTipoPet().equalsIgnoreCase("TODOS") ||
@@ -221,13 +220,6 @@ public class PartnerService {
                 return result;
         }
 
-        private String normalize(String str) {
-                return Normalizer.normalize(str == null ? "" : str, Normalizer.Form.NFD)
-                                .replaceAll("[\\p{InCombiningDiacriticalMarks}]", "")
-                                .toLowerCase()
-                                .trim();
-        }
-
         public PartenerServicesDto getOnlyPartner(UUID idPartner, String nomeServico) {
                 PartnerModel partner = partnerRepository.findById(idPartner)
                                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
@@ -271,7 +263,6 @@ public class PartnerService {
                         String urlStr = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=" +
                                         origemParam + "&destinations=" + destinosParam + "&departure_time=now" + "&key="
                                         + API_KEY;
-
                         URL url = new URL(urlStr);
                         HttpURLConnection con = (HttpURLConnection) url.openConnection();
                         con.setRequestMethod("GET");
@@ -287,16 +278,25 @@ public class PartnerService {
                         con.disconnect();
 
                         JSONObject responseJson = new JSONObject(content.toString());
-                        JSONArray elements = responseJson.getJSONArray("rows").getJSONObject(0)
-                                        .getJSONArray("elements");
 
+                        JSONArray rows = responseJson.optJSONArray("rows");
+
+                        JSONArray elements = rows.getJSONObject(0).optJSONArray("elements");
+                  
                         List<DistanceDurationDto> result = new ArrayList<>();
                         for (int i = 0; i < elements.length(); i++) {
                                 JSONObject element = elements.getJSONObject(i);
-                                String distance = element.getJSONObject("distance").getString("text");
-                                String duration = element.getJSONObject("duration").getString("text");
-                                result.add(new DistanceDurationDto(distance, duration));
+
+                                if (element.has("distance") && element.has("duration")) {
+                                        String distance = element.getJSONObject("distance").getString("text");
+                                        String duration = element.getJSONObject("duration").getString("text");
+                                        result.add(new DistanceDurationDto(distance, duration));
+                                } else {
+                                        System.err.println("Elemento sem distância/duração válido: "
+                                                        + element.toString(2));
+                                }
                         }
+
                         return result;
 
                 } catch (Exception e) {

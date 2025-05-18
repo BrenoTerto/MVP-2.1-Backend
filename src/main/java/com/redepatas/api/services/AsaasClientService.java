@@ -68,7 +68,6 @@ public class AsaasClientService {
     public String criarCliente(String nome, String cpfCnpj, String login, Boolean tipoLogin) {
         Map<String, String> body = new HashMap<>();
         String cpfFormatado = cpfCnpj.replaceAll("[.-]", "");
-        System.out.println(cpfFormatado);
         body.put("name", nome);
         body.put("cpfCnpj", cpfFormatado);
         if (tipoLogin) {

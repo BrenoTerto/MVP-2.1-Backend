@@ -35,6 +35,7 @@ public class EmailService {
     @Autowired
     @Qualifier("noreplyMailSender")
     private JavaMailSender noreplyMailSender;
+    private static String UrlBasic = "http://localhost:8080/";
 
     @SuppressWarnings("deprecation")
     public void enviarEmail(String para, String assunto, String corpoHtml, String personal, String from)
@@ -105,7 +106,6 @@ public class EmailService {
 
         try (FileWriter writer = new FileWriter("email-debug.html")) {
             writer.write(corpoHtml);
-            System.out.println("HTML exportado com sucesso para 'email-debug.html'");
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -120,14 +120,14 @@ public class EmailService {
 
         String corpoHtml = templateEngine.process("confirmacaoTemplate", context);
 
-        try (FileWriter writer = new FileWriter("email-confirmacao-debug.html")) {
-            writer.write(corpoHtml);
-            System.out.println("HTML de confirmação exportado para 'email-confirmacao-debug.html'");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-
         enviarEmail(para, "Confirme seu cadastro", corpoHtml, "Confirmação cadastral", "noreply");
     }
 
+    @Async
+    public void enviarRecovery(String para, String token) throws MessagingException {
+        Context context = new Context();
+        context.setVariable("linkRecuperacao", UrlBasic + "auth/validateHash/" + token);
+        String corpoHtml = templateEngine.process("recovery-password", context);
+        enviarEmail(para, "Redefinição de Senha", corpoHtml, "Não Responda", "noreply");
+    }
 }
