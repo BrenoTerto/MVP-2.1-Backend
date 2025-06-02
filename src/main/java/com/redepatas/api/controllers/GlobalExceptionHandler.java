@@ -15,7 +15,6 @@ import java.util.Map;
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    // Tratamento para erros de validação
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ValidationErrorDTO> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
@@ -25,8 +24,7 @@ public class GlobalExceptionHandler {
         ValidationErrorDTO errorDTO = new ValidationErrorDTO("Erro de validação", errors);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorDTO);
     }
-
-    // Tratamento para erros de "Cliente não encontrado"
+    
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<String> handleResponseStatusException(ResponseStatusException ex) {
         return ResponseEntity.status(ex.getStatusCode()).body(ex.getReason());

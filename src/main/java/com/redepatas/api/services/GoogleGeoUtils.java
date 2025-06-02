@@ -19,7 +19,8 @@ public class GoogleGeoUtils {
     private String API_KEY;
 
     public EnderecoDto reverseGeocode(Double latitude, Double longitude) {
-        String url = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + latitude + "," + longitude + "&key=" + API_KEY;
+        String url = "https://maps.googleapis.com/maps/api/geocode/json?latlng=" + latitude + "," + longitude + "&key="
+                + API_KEY;
         RestTemplate restTemplate = new RestTemplate();
 
         ResponseEntity<Map> response = restTemplate.getForEntity(url, Map.class);
@@ -34,24 +35,49 @@ public class GoogleGeoUtils {
 
         Map<String, Object> primeiroResultado = results.get(0);
         List<Map<String, Object>> components = (List<Map<String, Object>>) primeiroResultado.get("address_components");
+        System.out.println(primeiroResultado);
 
-        String rua = null, bairro = null, cidade = null, estado = null;
+        String rua = null, bairro = null, cidade = null, estado = null, cep = null, complemento = null;
+        Integer numero = null;
 
         for (Map<String, Object> comp : components) {
             List<String> types = (List<String>) comp.get("types");
             String nome = (String) comp.get("long_name");
 
-            if (types.contains("route")) rua = nome;
-            else if (types.contains("sublocality") || types.contains("political")) bairro = nome;
-            else if (types.contains("administrative_area_level_2")) cidade = nome;
-            else if (types.contains("administrative_area_level_1")) estado = nome;
+            if (types.contains("route")) {
+                rua = nome;
+            } else if (types.contains("street_number")) {
+                try {
+                    numero = Integer.valueOf(nome);
+                } catch (Exception e) {
+                    // ignora se não for número
+                }
+            } else if (types.contains("sublocality") || types.contains("sublocality_level_1")) {
+                bairro = nome;
+            } else if (types.contains("administrative_area_level_2")) {
+                cidade = nome;
+            } else if (types.contains("administrative_area_level_1")) {
+                estado = (String) comp.get("short_name");
+            } else if (types.contains("postal_code")) {
+                cep = nome;
+            } else if (types.contains("subpremise")) {
+                complemento = nome;
+            }
         }
 
         String lugar = (String) primeiroResultado.get("formatted_address");
 
         return new EnderecoDto(
-                null, rua, cidade, estado, bairro,
-                null, null, null, lugar, false
+                null, // idEndereco
+                rua,
+                cidade,
+                estado,
+                bairro,
+                cep,
+                complemento,
+                numero,
+                lugar,
+                false // selecionado
         );
     }
 }

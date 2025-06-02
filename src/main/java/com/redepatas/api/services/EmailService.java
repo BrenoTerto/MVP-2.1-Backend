@@ -35,13 +35,13 @@ public class EmailService {
     @Autowired
     @Qualifier("noreplyMailSender")
     private JavaMailSender noreplyMailSender;
-    private static String UrlBasic = "http://localhost:8080/";
+    private static String UrlBasic = "https://redepatas.iandev.site/";
 
     @SuppressWarnings("deprecation")
     public void enviarEmail(String para, String assunto, String corpoHtml, String personal, String from)
             throws MessagingException {
 
-        // Escolher o JavaMailSender certo conforme o "from"
+
         JavaMailSender sender;
         if ("agendamentos".equalsIgnoreCase(from)) {
             sender = agendamentoMailSender;
@@ -54,7 +54,7 @@ public class EmailService {
         jakarta.mail.internet.MimeMessage mensagem = sender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mensagem, true);
 
-        // Definir os detalhes do e-mail
+
         helper.setTo(para);
         helper.setSubject(assunto);
         try {
@@ -64,18 +64,17 @@ public class EmailService {
         }
         helper.setText(corpoHtml, true);
 
-        // URL da imagem externa
         try {
             URL urlImagem = new URL("https://redepatasbucket.s3.sa-east-1.amazonaws.com/public/RedePatasLogo.png");
             URLDataSource fds = new URLDataSource(urlImagem);
 
-            // Criar a parte de imagem
+
             MimeBodyPart imagePart = new MimeBodyPart();
             imagePart.setDataHandler(new DataHandler(fds));
             imagePart.setHeader("Content-ID", "<imagemID>");
             imagePart.setFileName("imagem.jpg");
 
-            // Criar a parte de multipart
+
             MimeMultipart multipart = new MimeMultipart();
             multipart.addBodyPart(imagePart);
             multipart.addBodyPart(new MimeBodyPart() {
@@ -86,7 +85,7 @@ public class EmailService {
 
             mensagem.setContent(multipart);
 
-            // Enviar o e-mail
+
             sender.send(mensagem);
         } catch (Exception e) {
             e.printStackTrace();
@@ -126,7 +125,7 @@ public class EmailService {
     @Async
     public void enviarRecovery(String para, String token) throws MessagingException {
         Context context = new Context();
-        context.setVariable("linkRecuperacao", UrlBasic + "auth/validateHash/" + token);
+        context.setVariable("linkRecuperacao", UrlBasic + "newPassword/" + token);
         String corpoHtml = templateEngine.process("recovery-password", context);
         enviarEmail(para, "Redefinição de Senha", corpoHtml, "Não Responda", "noreply");
     }

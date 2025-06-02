@@ -25,7 +25,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.text.Normalizer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -66,7 +65,6 @@ public class PartnerService {
                                         "Já existe um parceiro com este e-mail de contato.");
                 }
 
-                // Criação do endereço
                 EnderecoPartner endereco = new EnderecoPartner(
                                 dto.endereco().rua(),
                                 dto.endereco().bairro(),
@@ -77,7 +75,6 @@ public class PartnerService {
                                 dto.endereco().complemento(),
                                 dto.endereco().lugar());
 
-                // Criação dos serviços
                 List<Servico> servicos = dto.servicos().stream().map(servicoDto -> {
                         Servico servico = new Servico();
                         servico.setNome(servicoDto.nome());
@@ -96,7 +93,6 @@ public class PartnerService {
                         return servico;
                 }).toList();
 
-                // Criação inicial do parceiro (sem os horários ainda)
                 PartnerModel partner = new PartnerModel(
                                 dto.name(),
                                 dto.imageUrl(),
@@ -203,7 +199,7 @@ public class PartnerService {
                                         .filter(servico -> servico.getNome().equalsIgnoreCase(nomeServico))
                                         .findFirst()
                                         .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                                                        "Serviço não encontrado para esse parceiro"));
+                                                        "Nenhum parceiro encontrado com o serviço solicitado."));
 
                         result.add(new PartnerDto(
                                         partner.getIdPartner(),
@@ -231,17 +227,13 @@ public class PartnerService {
                                 .findFirst()
                                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                                                 "Serviço não encontrado para esse parceiro"));
-
-                // Mapear subserviços para DTOs
                 List<SubServicoDto> subServicosDto = servicoEncontrado.getSubServicos().stream()
                                 .map(sub -> new SubServicoDto(sub.getNome(), sub.getDescricao(), sub.getPreco()))
                                 .collect(Collectors.toList());
 
-                // Criar o DTO do serviço
                 ServicoDto servicoDto = new ServicoDto(servicoEncontrado.getNome(), servicoEncontrado.getPrice(),
                                 subServicosDto);
 
-                // Mapear horários de funcionamento
                 List<HorarioFuncionamentoDto> horariosDto = partner.getHorariosFuncionamento().stream()
                                 .map(horario -> new HorarioFuncionamentoDto(
                                                 horario.getDia(),

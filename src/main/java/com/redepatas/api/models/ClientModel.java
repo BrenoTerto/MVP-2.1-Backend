@@ -78,7 +78,7 @@ public class ClientModel implements UserDetails {
     }
 
     private boolean isTelefone(String login) {
-        return login.matches("^\\d{10,11}$"); // Ex: 11999999999
+        return login.matches("^\\d{10,11}$"); 
     }
 
     @Override

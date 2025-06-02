@@ -148,7 +148,7 @@ public class AuthenticationController {
                 tipoLogin = false;
             } else {
                 throw new IllegalArgumentException("Login deve ser um e-mail ou telefone válido.");
-            }
+            } //IMPLEMENTAR PARA QUE EMAIL OU TELEFONE FUNCIONE
             String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());
 
             ClientModel newUser = new ClientModel(data.login(), encryptedPassword, data.CPF(), data.name(),
@@ -163,7 +163,7 @@ public class AuthenticationController {
                     LocalDateTime.now().plusMinutes(30),
                     null,
                     newUser);
-            String link = "http://26.171.157.156:8080/auth/confirm?token=" + token;
+            String link = "https://apirede.iandev.site/auth/confirm?token=" + token;
             emailService.enviarConfirmacao(data.login(), data.name(), link);
             tokenRepository.save(confirmationToken);
 
