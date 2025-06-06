@@ -1,6 +1,7 @@
 package com.redepatas.api.services;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -20,9 +21,11 @@ import com.redepatas.api.models.AgendamentoModel;
 import com.redepatas.api.models.ClientModel;
 import com.redepatas.api.models.PetModel;
 import com.redepatas.api.models.Enum.StatusAgendamento;
+import com.redepatas.api.models.Partner.HorarioIntervaloModel;
 import com.redepatas.api.models.Partner.PartnerModel;
 import com.redepatas.api.repositories.AgendamentoRepository;
 import com.redepatas.api.repositories.ClientRepository;
+import com.redepatas.api.repositories.HorarioIntervaloRepository;
 import com.redepatas.api.repositories.PartnerRepository;
 import com.redepatas.api.repositories.PetRepository;
 
@@ -45,10 +48,11 @@ public class AgendamentoService {
 
         @Autowired
         private EmailService emailService;
+        @Autowired
+        private HorarioIntervaloRepository horarioIntervaloRepository;
 
         public String criarAgendamento(String login, UUID idParceiro, UUID idPet, String servico,
-                        LocalDateTime dataAgendamento)
-                        throws MessagingException {
+                        LocalDate dataAgendamento, UUID idIntervalo) throws MessagingException {
 
                 ClientModel cliente = (ClientModel) clientRepository.findByLogin(login);
                 if (cliente == null) {
@@ -64,17 +68,31 @@ public class AgendamentoService {
                                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                                                 "Parceiro nao encontrado"));
 
+                // Busque o intervalo pelo ID usando o repository
+                HorarioIntervaloModel horarioIntervalo = horarioIntervaloRepository.findById(idIntervalo)
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                "Intervalo de horário não encontrado"));
+
+                boolean reservado = agendamentoRepository.existsByPartnerModelAndDataAgendamentoAndIntervalo(
+                                parceiro, dataAgendamento, horarioIntervalo);
+                if (reservado) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                        "Esse horário já está reservado para a data escolhida.");
+                }
+
                 AgendamentoModel agendamento = new AgendamentoModel(
                                 cliente,
                                 parceiro,
                                 pet,
                                 dataAgendamento,
+                                horarioIntervalo,
                                 StatusAgendamento.PENDENTE,
                                 servico);
 
                 agendamentoRepository.save(agendamento);
+                String intervalo = horarioIntervalo.getHorarioInicio() + " - " + horarioIntervalo.getHorarioFim();
                 emailService.enviarAgendamento(parceiro.getEmailContato(), parceiro.getName(), pet.getNome(),
-                                dataAgendamento, agendamento.getId().toString());
+                                dataAgendamento, intervalo, agendamento.getId().toString());
                 return "Agendamento criado com sucesso! Aguarde a confirmação";
         }
 
@@ -112,6 +130,8 @@ public class AgendamentoService {
                 return new AgendamentoResponseDto(
                                 agendamento.getId(),
                                 agendamento.getDataAgendamento(),
+                                agendamento.getIntervalo().getHorarioInicio() + "-"
+                                                + agendamento.getIntervalo().getHorarioFim(),
                                 agendamento.getStatusAgendamento(),
                                 clientDto,
                                 petDto);
@@ -166,6 +186,8 @@ public class AgendamentoService {
                                                 agendamento.getPetModel().getNome(),
                                                 agendamento.getPetModel().getRaca(),
                                                 agendamento.getDataAgendamento(),
+                                                agendamento.getIntervalo().getHorarioInicio() + "-"
+                                                                + agendamento.getIntervalo().getHorarioInicio(),
                                                 agendamento.getPartnerModel().getName(),
                                                 agendamento.getPartnerModel().getCnpjCpf()
 
@@ -173,4 +195,25 @@ public class AgendamentoService {
                                 .toList();
         }
 
+        public String alterarStatusAgendamento(UUID idAgendamento, String status) {
+                AgendamentoModel agendamento = agendamentoRepository.findById(idAgendamento)
+                                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
+                                                "Agendamento não encontrado"));
+
+                if (agendamento.getStatusAgendamento() != StatusAgendamento.PENDENTE) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                        "Agendamento já foi aceito ou cancelado");
+                }
+                if (status == null || status.isEmpty()) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Status não pode ser vazio");
+                }
+                if (status.equalsIgnoreCase("cancelado")) {
+                        agendamento.setStatusAgendamento(StatusAgendamento.CANCELADO);
+                        agendamentoRepository.save(agendamento);
+                        return "Agendamento cancelado com sucesso!";
+                }
+                agendamento.setStatusAgendamento(StatusAgendamento.CONFIRMADO);
+                agendamentoRepository.save(agendamento);
+                return "Agendamento aceito com sucesso!";
+        }
 }

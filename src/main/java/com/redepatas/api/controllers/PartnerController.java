@@ -1,5 +1,6 @@
 package com.redepatas.api.controllers;
 
+import com.redepatas.api.dtos.PartnerDtos.GetPartnerServiceDto;
 import com.redepatas.api.dtos.PartnerDtos.PartenerServicesDto;
 import com.redepatas.api.dtos.PartnerDtos.PartnerDto;
 import com.redepatas.api.dtos.PartnerDtos.PartnerRecordDto;
@@ -8,6 +9,7 @@ import com.redepatas.api.services.PartnerService;
 
 import jakarta.validation.Valid;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,13 +36,14 @@ public class PartnerController {
     public List<PartnerDto> getAllPartner(
             @RequestBody @Valid getPartnerDtos dtos,
             @AuthenticationPrincipal UserDetails userDetails) {
-        return partnerService.getAllPartners(dtos.porte(), userDetails.getUsername(), dtos.nomeServico(), dtos.rua(), dtos.bairro(), dtos.cidade());
+        return partnerService.getAllPartners(dtos.porte(), userDetails.getUsername(), dtos.nomeServico(), dtos.rua(),
+                dtos.bairro(), dtos.cidade());
     }
 
-    @GetMapping("getServices/{idPartner}/{nomeServico}")
+    @PostMapping("/getServices")
     public ResponseEntity<PartenerServicesDto> getPartnerService(
-            @PathVariable UUID idPartner,
-            @PathVariable String nomeServico) {
-        return ResponseEntity.ok(partnerService.getOnlyPartner(idPartner, nomeServico));
+            @RequestBody @Valid GetPartnerServiceDto dto) {
+        LocalDate data = dto.data() != null ? LocalDate.parse(dto.data()) : null;
+        return ResponseEntity.ok(partnerService.getOnlyPartner(dto.idParceiro(), dto.nomeServico(), data));
     }
 }

@@ -21,16 +21,15 @@
                     </tr>
                     <tr>
                         <td style="padding:20px; color:#333; font-size:16px;">
-                            <p>Olá, <strong th:text="${nomeParceiro}">Nome do Parceiro</strong>,</p>
+                            <p>Olá, <strong>Pet Feliz</strong>,</p>
                             <p>Você recebeu um novo agendamento!</p>
-                            <p><strong>Pet:</strong> <span th:text="${nomePet}">Nome do Pet</span></p>
-                            <p><strong>Data do Agendamento:</strong> <span th:text="${dataAgendamento}">Data</span></p>
-                            <p><strong>Horario do Agendamento</strong> <span
-                                    th:text="${horarioAgendamento}">Horario</span></p>
+                            <p><strong>Pet:</strong> <span>Rex</span></p>
+                            <p><strong>Data do Agendamento:</strong> <span>09/06/2025</span></p>
+                            <p><strong>Horario do Agendamento</strong> <span>08:00 - 09:00</span></p>
                             <p>Para mais detalhes e para confirmar ou ajustar:</p>
 
                             <div style="text-align: center; margin: 20px;">
-                                <a th:href="@{'https://beta.redepatas.com/acceptSchedule/' + ${idAgendamento}}"
+                                <a href="http://localhost:8080/agendamentos/getAgendamento/08:00 - 09:00"
                                     style="background-color:#00bcd4; color:white; padding:15px 0; text-decoration:none; border-radius:5px; font-weight:bold; display:block; width:100%; max-width: 600px; margin: 0 auto;">
                                     Ver Agendamento
                                 </a>

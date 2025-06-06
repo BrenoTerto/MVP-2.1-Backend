@@ -35,7 +35,6 @@ public class GoogleGeoUtils {
 
         Map<String, Object> primeiroResultado = results.get(0);
         List<Map<String, Object>> components = (List<Map<String, Object>>) primeiroResultado.get("address_components");
-        System.out.println(primeiroResultado);
 
         String rua = null, bairro = null, cidade = null, estado = null, cep = null, complemento = null;
         Integer numero = null;

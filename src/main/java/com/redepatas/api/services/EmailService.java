@@ -18,7 +18,7 @@ import jakarta.mail.internet.MimeMultipart;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.net.URL;
 
@@ -35,12 +35,11 @@ public class EmailService {
     @Autowired
     @Qualifier("noreplyMailSender")
     private JavaMailSender noreplyMailSender;
-    private static String UrlBasic = "https://redepatas.iandev.site/";
+    private static String UrlBasic = "https://beta.redepastas.com/";
 
     @SuppressWarnings("deprecation")
     public void enviarEmail(String para, String assunto, String corpoHtml, String personal, String from)
             throws MessagingException {
-
 
         JavaMailSender sender;
         if ("agendamentos".equalsIgnoreCase(from)) {
@@ -53,7 +52,6 @@ public class EmailService {
 
         jakarta.mail.internet.MimeMessage mensagem = sender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mensagem, true);
-
 
         helper.setTo(para);
         helper.setSubject(assunto);
@@ -68,12 +66,10 @@ public class EmailService {
             URL urlImagem = new URL("https://redepatasbucket.s3.sa-east-1.amazonaws.com/public/RedePatasLogo.png");
             URLDataSource fds = new URLDataSource(urlImagem);
 
-
             MimeBodyPart imagePart = new MimeBodyPart();
             imagePart.setDataHandler(new DataHandler(fds));
             imagePart.setHeader("Content-ID", "<imagemID>");
             imagePart.setFileName("imagem.jpg");
-
 
             MimeMultipart multipart = new MimeMultipart();
             multipart.addBodyPart(imagePart);
@@ -85,7 +81,6 @@ public class EmailService {
 
             mensagem.setContent(multipart);
 
-
             sender.send(mensagem);
         } catch (Exception e) {
             e.printStackTrace();
@@ -93,12 +88,14 @@ public class EmailService {
     }
 
     @Async
-    public void enviarAgendamento(String para, String nomeParceiro, String nomePet, LocalDateTime dataAgendamento,
+    public void enviarAgendamento(String para, String nomeParceiro, String nomePet, LocalDate dataAgendamento,
+            String intervaloAgendamento,
             String idAgendamento) throws MessagingException {
         Context context = new Context();
         context.setVariable("nomeParceiro", nomeParceiro);
         context.setVariable("nomePet", nomePet);
-        context.setVariable("dataAgendamento", dataAgendamento.format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+        context.setVariable("dataAgendamento", dataAgendamento.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+        context.setVariable("horarioAgendamento", intervaloAgendamento);
         context.setVariable("idAgendamento", idAgendamento);
 
         String corpoHtml = templateEngine.process("agendamentoTemplate", context);

@@ -44,7 +44,8 @@ public class AgendamentoController {
                 dto.idPartner(),
                 dto.idPet(),
                 dto.servico(),
-                dto.dataAgendamento());
+                dto.dataAgendamento(),
+                dto.idIntervalo());
 
         if (resultado.contains("Falha")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resultado);
@@ -72,5 +73,11 @@ public class AgendamentoController {
         return ResponseEntity.ok(agendamentoService.meusAgendamentos(login));
     }
 
-    
+    @PutMapping("/alterarStatus/{idAgendamento}/{status}")
+    public ResponseEntity<String> alterarStatusAgendamento(
+            @PathVariable UUID idAgendamento,
+            @PathVariable String status,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(agendamentoService.alterarStatusAgendamento(idAgendamento, status));
+    }
 }

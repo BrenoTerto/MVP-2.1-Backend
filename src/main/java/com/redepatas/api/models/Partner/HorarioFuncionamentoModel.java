@@ -1,9 +1,9 @@
 package com.redepatas.api.models.Partner;
 
-
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.util.List;
 import java.util.UUID;
 
 import com.redepatas.api.models.Enum.DiaSemana;
@@ -23,10 +23,10 @@ public class HorarioFuncionamentoModel {
     @Enumerated(EnumType.STRING)
     private DiaSemana dia;
 
-    private String horarioInicio;
-    private String horarioFim;
-
     @ManyToOne
     @JoinColumn(name = "partner_id")
     private PartnerModel partner;
+
+    @OneToMany(mappedBy = "horarioFuncionamento", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<HorarioIntervaloModel> intervalos;
 }
