@@ -21,7 +21,7 @@ public interface ClientRepository extends JpaRepository<ClientModel, UUID> {
     @Query("""
                 SELECT CASE WHEN COUNT(c) > 0 THEN true ELSE false END
                 FROM users c
-                WHERE c.login = :login OR c.phoneNumber = :phoneNumber OR c.emal = :email
+                WHERE c.login = :login OR c.phoneNumber = :phoneNumber OR c.email = :email
             """)
     boolean existsByLoginOrPhoneNumberOrCPF(@Param("login") String login, @Param("phoneNumber") String phoneNumber,
             @Param("email") String email);

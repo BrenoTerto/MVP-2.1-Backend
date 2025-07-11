@@ -29,9 +29,6 @@ public class ClientModel implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID idUser;
-    @Column(unique = true)
-    @Size(min = 14, max = 14, message = "O CPF deve ter 14 dígitos")
-    @NotNull(message = "O CPF não pode ser nulo")
     private String login;
     private String password;
 
@@ -41,6 +38,9 @@ public class ClientModel implements UserDetails {
     private String phoneNumber;
     private String email;
     private String photoUrl;
+    @Column(unique = true)
+    @Size(min = 14, max = 14, message = "O CPF deve ter 14 dígitos")
+    @NotNull(message = "O CPF não pode ser nulo")
     private String CPF;
     private LocalDate birthDate;
     private LocalDateTime registrationDate;

@@ -48,6 +48,7 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("auth")
 public class AuthenticationController {
+
     @Autowired
     private AuthenticationManager authenticationManager;
 
@@ -126,7 +127,7 @@ public class AuthenticationController {
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody @Valid RegisterDTO data) {
         try {
-            if (!isCPFValido(data.login())) {
+            if (!isCPFValido(data.CPF())) {
                 return ResponseEntity.badRequest().body("CPF inválido.");
             }
 
@@ -142,7 +143,7 @@ public class AuthenticationController {
             String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());
 
             ClientModel newUser = new ClientModel(data.login(), encryptedPassword, data.email(), data.numero(),
-                    data.name(), ClientRole.USER, String CPF);
+                    data.name(), ClientRole.USER, data.CPF());
             newUser.setEmailConfirmado(false);
             this.repository.save(newUser);
 
