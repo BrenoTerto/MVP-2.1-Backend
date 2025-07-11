@@ -59,22 +59,19 @@ public class AsaasClientService {
                 }
             }
         } catch (Exception ex) {
-            
+
         }
 
         return null;
     }
 
-    public String criarCliente(String nome, String cpfCnpj, String login, Boolean tipoLogin) {
+    public String criarCliente(String nome, String cpfCnpj, String email, String numero) {
         Map<String, String> body = new HashMap<>();
         String cpfFormatado = cpfCnpj.replaceAll("[.-]", "");
         body.put("name", nome);
         body.put("cpfCnpj", cpfFormatado);
-        if (tipoLogin) {
-            body.put("email", login);
-        } else {
-            body.put("mobilePhone", login);
-        }
+        body.put("email", email);
+        body.put("mobilePhone", numero);
 
         String idClienteExistente = verificarClienteExistente(cpfCnpj);
         if (idClienteExistente != null) {
@@ -95,14 +92,15 @@ public class AsaasClientService {
         }
     }
 
-    public String criarAssinatura(String customerId, BigDecimal valor, String descricao, String dataVencimento, String idAssinatura) {
+    public String criarAssinatura(String customerId, BigDecimal valor, String descricao, String dataVencimento,
+            String idAssinatura) {
         String url = "https://sandbox.asaas.com/api/v3/subscriptions";
 
         Map<String, Object> body = new HashMap<>();
-        body.put("billingType", "CREDIT_CARD"); 
+        body.put("billingType", "CREDIT_CARD");
         body.put("cycle", "MONTHLY");
         body.put("value", valor);
-        body.put("nextDueDate", dataVencimento); 
+        body.put("nextDueDate", dataVencimento);
         body.put("description", descricao);
         body.put("customer", customerId);
         body.put("externalReference", idAssinatura);

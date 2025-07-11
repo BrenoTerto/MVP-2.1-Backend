@@ -74,31 +74,24 @@ public class AuthenticationController {
 
     @PostMapping("/login")
     public ResponseEntity<ReponseLoginDto> login(@RequestBody @Valid AuthenticationDTO data) {
-        ClientModel client = (ClientModel) repository.findByLogin(data.login());
-        if (client == null) {
-            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas!");
-        }
-        if (!client.isEmailConfirmado()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cadastro não confirmado!");
-        }
         try {
             var clientPassword = new UsernamePasswordAuthenticationToken(data.login(), data.password());
             var auth = this.authenticationManager.authenticate(clientPassword);
-            var token = tokenService.generateToken((ClientModel) auth.getPrincipal());
+
+            ClientModel client = (ClientModel) auth.getPrincipal();
+
+            if (!client.isEmailConfirmado()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cadastro não confirmado!");
+            }
+
+            var token = tokenService.generateToken(client);
             return ResponseEntity.ok(new ReponseLoginDto(token));
+
         } catch (org.springframework.security.core.AuthenticationException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas!");
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno no servidor.");
         }
-    }
-
-    private boolean isEmail(String login) {
-        return login.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
-    }
-
-    private boolean isTelefone(String login) {
-        return login.matches("^\\d{10,11}$");
     }
 
     public static boolean isCPFValido(String cpf) {
@@ -132,27 +125,24 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody @Valid RegisterDTO data) {
-        Boolean tipoLogin;
         try {
-            if (this.repository.findByLogin(data.login()) != null
-                    || this.repository.findByPhoneNumber(data.login()) != null
-                    || this.repository.findByCPF(data.CPF()) != null) {
-                return ResponseEntity.badRequest().body("Email, telefone ou CPF já cadastrados!");
-            }
-            if (!isCPFValido(data.CPF())) {
+            if (!isCPFValido(data.login())) {
                 return ResponseEntity.badRequest().body("CPF inválido.");
             }
-            if (isEmail(data.login())) {
-                tipoLogin = true;
-            } else if (isTelefone(data.login())) {
-                tipoLogin = false;
-            } else {
-                throw new IllegalArgumentException("Login deve ser um e-mail ou telefone válido.");
+
+            boolean exists = this.repository.existsByLoginOrPhoneNumberOrCPF(
+                    data.login(),
+                    data.numero(),
+                    data.email());
+
+            if (exists) {
+                return ResponseEntity.badRequest().body("Email, telefone ou CPF já cadastrados!");
             }
+
             String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());
 
-            ClientModel newUser = new ClientModel(data.login(), encryptedPassword, data.CPF(), data.name(),
-                    ClientRole.USER);
+            ClientModel newUser = new ClientModel(data.login(), encryptedPassword, data.email(), data.numero(),
+                    data.name(), ClientRole.USER, String CPF);
             newUser.setEmailConfirmado(false);
             this.repository.save(newUser);
 
@@ -163,11 +153,13 @@ public class AuthenticationController {
                     LocalDateTime.now().plusMinutes(30),
                     null,
                     newUser);
+
             String link = "https://beta.redepatas.com/confirmEmail/" + token;
             emailService.enviarConfirmacao(data.login(), data.name(), link);
             tokenRepository.save(confirmationToken);
 
             return ResponseEntity.ok().body("Usuário cadastrado com sucesso!");
+
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("Dados inválidos fornecidos!");
         } catch (Exception e) {
@@ -193,10 +185,9 @@ public class AuthenticationController {
 
         ClientModel user = confirmationToken.getUser();
 
-        Boolean tipoLogin = isEmail(user.getLogin());
         String idCustomer;
-        String clienteResponse = asaasClientService.criarCliente(user.getName(), user.getCPF(), user.getLogin(),
-                tipoLogin);
+        String clienteResponse = asaasClientService.criarCliente(user.getName(), user.getLogin(), user.getEmail(),
+                user.getPhoneNumber());
 
         if (clienteResponse == null || clienteResponse.contains("erro")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)

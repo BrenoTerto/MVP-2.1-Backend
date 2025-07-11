@@ -29,18 +29,19 @@ public class ClientModel implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID idUser;
-    private String login;
-    private String password;
     @Column(unique = true)
     @Size(min = 14, max = 14, message = "O CPF deve ter 14 dígitos")
     @NotNull(message = "O CPF não pode ser nulo")
-    private String CPF;
+    private String login;
+    private String password;
+
     @NotNull(message = "O nome não pode ser nulo")
     private String name;
     private ClientRole role;
     private String phoneNumber;
     private String email;
     private String photoUrl;
+    private String CPF;
     private LocalDate birthDate;
     private LocalDateTime registrationDate;
     @OneToMany(mappedBy = "clientModel", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -56,12 +57,15 @@ public class ClientModel implements UserDetails {
     @Column(nullable = false)
     private boolean emailConfirmado = false;
 
-    public ClientModel(String login, String encryptedPassword, String CPF, String name, ClientRole role) {
+    public ClientModel(String login, String encryptedPassword, String email, String numero, String name,
+            ClientRole role, String CPF) {
         this.login = login;
         this.password = encryptedPassword;
-        this.CPF = CPF;
         this.name = name;
         this.role = role;
+        this.CPF = CPF;
+        this.phoneNumber = numero;
+        this.email = email;
         this.registrationDate = LocalDateTime.now();
         this.idCustomer = null;
         if (isEmail(login)) {
@@ -78,7 +82,7 @@ public class ClientModel implements UserDetails {
     }
 
     private boolean isTelefone(String login) {
-        return login.matches("^\\d{10,11}$"); 
+        return login.matches("^\\d{10,11}$");
     }
 
     @Override
