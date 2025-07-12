@@ -68,13 +68,14 @@ public class ClientModel implements UserDetails {
         this.email = email;
         this.registrationDate = LocalDateTime.now();
         this.idCustomer = null;
-        if (isEmail(login)) {
-            this.email = login;
-        } else if (isTelefone(login)) {
-            this.phoneNumber = login;
-        } else {
-            throw new IllegalArgumentException("Login deve ser um e-mail ou telefone válido.");
-        }
+        // if (isEmail(login)) {
+        // this.email = login;
+        // } else if (isTelefone(login)) {
+        // this.phoneNumber = login;
+        // } else {
+        // throw new IllegalArgumentException("Login deve ser um e-mail ou telefone
+        // válido.");
+        // }
     }
 
     private boolean isEmail(String login) {

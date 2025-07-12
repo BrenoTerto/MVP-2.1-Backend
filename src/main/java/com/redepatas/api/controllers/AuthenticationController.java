@@ -156,16 +156,60 @@ public class AuthenticationController {
                     newUser);
 
             String link = "https://beta.redepatas.com/confirmEmail/" + token;
-            emailService.enviarConfirmacao(data.login(), data.name(), link);
+            emailService.enviarConfirmacao(data.email(), data.name(), link);
             tokenRepository.save(confirmationToken);
 
             return ResponseEntity.ok().body("Usuário cadastrado com sucesso!");
 
         } catch (IllegalArgumentException e) {
+            System.out.println(e);
             return ResponseEntity.badRequest().body("Dados inválidos fornecidos!");
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Erro interno no servidor.");
         }
+    }
+
+    @GetMapping("/confirmEmail/{token}")
+    public ResponseEntity<String> confirmEmail(@PathVariable String token) {
+        Optional<ConfirmationToken> optionalToken = tokenRepository.findByToken(token);
+
+        if (optionalToken.isEmpty()) {
+            return ResponseEntity.badRequest().body("Token inválido ou não encontrado.");
+        }
+        ConfirmationToken confirmationToken = optionalToken.get();
+        if (confirmationToken.getConfirmedAt() != null) {
+            return ResponseEntity.badRequest().body("Conta já confirmada.");
+        }
+
+        if (confirmationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            return ResponseEntity.badRequest().body("Token expirado.");
+        }
+
+        ClientModel user = confirmationToken.getUser();
+
+        String idCustomer;
+        String clienteResponse = asaasClientService.criarCliente(user.getName(), user.getCPF(), user.getEmail(),
+                user.getPhoneNumber());
+
+        if (clienteResponse == null || clienteResponse.contains("erro")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Erro ao criar cliente asaas, Erro: " + clienteResponse);
+        }
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode rootNode = objectMapper.readTree(clienteResponse);
+            idCustomer = rootNode.get("id").asText();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Erro ao processar resposta do Asaas: " + e.getMessage());
+        }
+        user.setIdCustomer(idCustomer);
+        confirmationToken.setConfirmedAt(LocalDateTime.now());
+        tokenRepository.save(confirmationToken);
+        user.setEmailConfirmado(true);
+        repository.save(user);
+        return ResponseEntity.ok("Cadastro confirmado com sucesso!");
     }
 
     @GetMapping("/confirm")

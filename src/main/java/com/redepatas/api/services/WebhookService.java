@@ -49,5 +49,4 @@ public class WebhookService {
         assinatura.setStatusAssinatura(StatusAssinatura.ATIVA);
         assinaturaClienteRepository.save(assinatura);
     }
-
 }
