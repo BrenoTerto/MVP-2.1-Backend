@@ -38,7 +38,7 @@ public class ClientModel implements UserDetails {
     private String phoneNumber;
     private String email;
     private String photoUrl;
-    @Column(unique = true)
+    @Column(unique = true, name = "cpf")
     @Size(min = 14, max = 14, message = "O CPF deve ter 14 dígitos")
     @NotNull(message = "O CPF não pode ser nulo")
     private String CPF;

@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.*;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @RestController
 @RequestMapping("/assinaturas")
 public class AssinaturasController {
@@ -31,6 +30,7 @@ public class AssinaturasController {
 
     @Autowired
     AsaasClientService asaasClientService;
+
     @GetMapping("/listar")
     public List<PlanoAssinatura> listarPlanos() {
         return planoAssinaturaRepository.findAll();
@@ -58,14 +58,11 @@ public class AssinaturasController {
                 planoDto);
     }
 
-    @PostMapping("/newSignature/{idAssinatura}")
+    @PostMapping("/newSignature/{login}")
     public ResponseEntity<String> criarAssinatura(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable("idAssinatura") Long planoId) {
-
-        String login = userDetails.getUsername();
-
-        String resultado = assinaturaService.criarAssinatura(login, planoId);
+            @PathVariable("login") String login) {
+        Long plano = (long) 1; // MUDAR FUTURAMENTE PARA MULTIPLOS PLANOS
+        String resultado = assinaturaService.criarAssinatura(login, plano);
 
         if (resultado.contains("Falha")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(resultado);
@@ -73,5 +70,5 @@ public class AssinaturasController {
 
         return ResponseEntity.ok(resultado);
     }
-    
+
 }

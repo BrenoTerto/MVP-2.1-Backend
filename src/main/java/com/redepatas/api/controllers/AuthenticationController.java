@@ -131,13 +131,17 @@ public class AuthenticationController {
                 return ResponseEntity.badRequest().body("CPF inválido.");
             }
 
-            boolean exists = this.repository.existsByLoginOrPhoneNumberOrCPF(
-                    data.login(),
+            if (this.repository.existsByLogin(data.login())) {
+                return ResponseEntity.badRequest().body("Login já cadastrados!");
+            } else if (this.repository.existsByCPF(data.CPF())) {
+                return ResponseEntity.badRequest().body("CPF já cadastrado");
+            }
+            boolean exists = this.repository.existsByEmailOuNumero(
                     data.numero(),
                     data.email());
 
             if (exists) {
-                return ResponseEntity.badRequest().body("Email, telefone ou CPF já cadastrados!");
+                return ResponseEntity.badRequest().body("Email ou telefone já cadastrados!");
             }
 
             String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());
@@ -209,7 +213,7 @@ public class AuthenticationController {
         tokenRepository.save(confirmationToken);
         user.setEmailConfirmado(true);
         repository.save(user);
-        return ResponseEntity.ok("Cadastro confirmado com sucesso!");
+        return ResponseEntity.ok(user.getLogin());
     }
 
     @GetMapping("/confirm")

@@ -68,7 +68,7 @@ public class TokenService {
             byte[] hashBytes = digest.digest(rawToken.getBytes(StandardCharsets.UTF_8));
             String hashedToken = Base64.getEncoder().encodeToString(hashBytes);
 
-            LocalDateTime expiration = LocalDateTime.now().plusMinutes(30);
+            LocalDateTime expiration = LocalDateTime.now().plusHours(2);
 
             PasswordResetToken tokenEntity = new PasswordResetToken(hashedToken, email, expiration);
             tokenRepository.save(tokenEntity);
@@ -80,7 +80,7 @@ public class TokenService {
         }
     }
 
-    public  PasswordResetToken validarTokenDeReset(String tokenPuro) {
+    public PasswordResetToken validarTokenDeReset(String tokenPuro) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hashBytes = digest.digest(tokenPuro.getBytes(StandardCharsets.UTF_8));

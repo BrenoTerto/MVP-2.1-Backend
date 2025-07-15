@@ -33,38 +33,44 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/pets/newPet/{userId}").hasRole("USER")
-                        .requestMatchers(HttpMethod.GET, "/pets/petsByClient/").hasRole("USER")
-                        .requestMatchers(HttpMethod.DELETE, "/pets/deletePet/{id}").hasRole("USER")
-                        .requestMatchers(HttpMethod.PUT, "/pets/updatePet/{id}").hasRole("USER")
-                        .requestMatchers(HttpMethod.POST, "/pets/addVacina/{petId}").hasRole("USER")
-                        .requestMatchers(HttpMethod.DELETE, "/pets/deleteVacina/").hasRole("USER")
+                        // .requestMatchers(HttpMethod.POST, "/pets/newPet/{userId}").hasRole("USER")
+                        // .requestMatchers(HttpMethod.GET, "/pets/petsByClient/").hasRole("USER")
+                        // .requestMatchers(HttpMethod.DELETE, "/pets/deletePet/{id}").hasRole("USER")
+                        // .requestMatchers(HttpMethod.PUT, "/pets/updatePet/{id}").hasRole("USER")
+                        // .requestMatchers(HttpMethod.POST, "/pets/addVacina/{petId}").hasRole("USER")
+                        // .requestMatchers(HttpMethod.DELETE, "/pets/deleteVacina/").hasRole("USER")
 
-                        .requestMatchers(HttpMethod.PUT, "/users/updateProfile").hasRole("USER")
-                        .requestMatchers(HttpMethod.PUT, "/auth/changePassword").hasRole("USER")
-                        .requestMatchers(HttpMethod.PUT, "/users/changeAvatar").hasRole("USER")
-                        .requestMatchers(HttpMethod.GET, "/users/getUser").hasRole("USER")
+                        // .requestMatchers(HttpMethod.PUT, "/users/updateProfile").hasRole("USER")
+                        // .requestMatchers(HttpMethod.PUT, "/auth/changePassword").hasRole("USER")
+                        // .requestMatchers(HttpMethod.PUT, "/users/changeAvatar").hasRole("USER")
+                        // .requestMatchers(HttpMethod.GET, "/users/getUser").hasRole("USER")
 
-                        .requestMatchers(HttpMethod.GET, "/users/myAddress").hasRole("USER")
-                        .requestMatchers(HttpMethod.POST, "/users/newAddress").hasRole("USER")
-                        .requestMatchers(HttpMethod.PUT, "/users/updateAddress/{idAddress}").hasRole("USER")
-                        .requestMatchers(HttpMethod.DELETE, "/users/deleteAddress/{idAddress}").hasRole("USER")
-                        .requestMatchers(HttpMethod.PUT, "/users/selectAddress/{idAddress}").hasRole("USER")
+                        // .requestMatchers(HttpMethod.GET, "/users/myAddress").hasRole("USER")
+                        // .requestMatchers(HttpMethod.POST, "/users/newAddress").hasRole("USER")
+                        // .requestMatchers(HttpMethod.PUT,
+                        // "/users/updateAddress/{idAddress}").hasRole("USER")
+                        // .requestMatchers(HttpMethod.DELETE,
+                        // "/users/deleteAddress/{idAddress}").hasRole("USER")
+                        // .requestMatchers(HttpMethod.PUT,
+                        // "/users/selectAddress/{idAddress}").hasRole("USER")
 
-                        .requestMatchers(HttpMethod.POST, "/agendamentos/criarAgendamento").hasRole("USER")
-                        .requestMatchers(HttpMethod.PUT, "/agendamentos/avaliar").hasRole("USER")
-                        .requestMatchers(HttpMethod.GET, "/agendamentos/meusAgendamentos").hasRole("USER")
-                        .requestMatchers(HttpMethod.PUT, "agendamentos/alterarStatus/{idAgendamento}/{status}")
-                        .permitAll()
-                        .requestMatchers("agendamentos/getAgendamento/{id}").permitAll()
+                        // .requestMatchers(HttpMethod.POST,
+                        // "/agendamentos/criarAgendamento").hasRole("USER")
+                        // .requestMatchers(HttpMethod.PUT, "/agendamentos/avaliar").hasRole("USER")
+                        // .requestMatchers(HttpMethod.GET,
+                        // "/agendamentos/meusAgendamentos").hasRole("USER")
+                        // .requestMatchers(HttpMethod.PUT,
+                        // "agendamentos/alterarStatus/{idAgendamento}/{status}")
+                        // .permitAll()
+                        // .requestMatchers("agendamentos/getAgendamento/{id}").permitAll()
 
-                        .requestMatchers(HttpMethod.POST, "/assinaturas/newSignature/{idAssinatura}").hasRole("USER")
+                        .requestMatchers(HttpMethod.POST, "/assinaturas/newSignature/{login}").hasRole("USER")
                         .requestMatchers(HttpMethod.GET, "/assinaturas/myPlan").hasRole("USER")
                         .requestMatchers("/assinaturas/**").permitAll()
 
-                        .requestMatchers(HttpMethod.POST, "/partners/getAll").hasRole("USER")
-                        .requestMatchers(HttpMethod.POST, "/partners/getServices")
-                        .hasRole("USER")
+                        // .requestMatchers(HttpMethod.POST, "/partners/getAll").hasRole("USER")
+                        // .requestMatchers(HttpMethod.POST, "/partners/getServices")
+                        // .hasRole("USER")
                         .requestMatchers("/partners/**").permitAll()
 
                         .requestMatchers("/files/**").permitAll() // AUTENTICAR EM BREVE
