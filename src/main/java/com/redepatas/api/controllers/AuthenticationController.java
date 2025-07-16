@@ -180,16 +180,17 @@ public class AuthenticationController {
         if (optionalToken.isEmpty()) {
             return ResponseEntity.badRequest().body("Token inválido ou não encontrado.");
         }
+
         ConfirmationToken confirmationToken = optionalToken.get();
+        ClientModel user = confirmationToken.getUser();
+
         if (confirmationToken.getConfirmedAt() != null) {
-            return ResponseEntity.badRequest().body("Conta já confirmada.");
+            return ResponseEntity.ok(user.getLogin());
         }
 
         if (confirmationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
             return ResponseEntity.badRequest().body("Token expirado.");
         }
-
-        ClientModel user = confirmationToken.getUser();
 
         String idCustomer;
         String clienteResponse = asaasClientService.criarCliente(user.getName(), user.getCPF(), user.getEmail(),
