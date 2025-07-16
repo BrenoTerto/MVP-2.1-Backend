@@ -131,6 +131,18 @@ public class AuthenticationController {
                 return ResponseEntity.badRequest().body("CPF inválido.");
             }
 
+            ClientModel existingUser = this.repository.findByEmail(data.email());
+            if (existingUser != null) {
+                if (existingUser.isEmailConfirmado()) {
+                    return ResponseEntity.badRequest().body("Email já cadastrado e confirmado!");
+                } else {
+                    // Se o usuário existe mas não confirmou o email, remove o registro antigo
+                    // para permitir que ele se cadastre novamente.
+                    tokenRepository.deleteByUser(existingUser);
+                    repository.delete(existingUser);
+                }
+            }
+
             if (this.repository.existsByLogin(data.login())) {
                 return ResponseEntity.badRequest().body("Login já cadastrados!");
             } else if (this.repository.existsByCPF(data.CPF())) {
@@ -186,7 +198,7 @@ public class AuthenticationController {
         }
 
         if (confirmationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
-            return ResponseEntity.badRequest().body("Token expirado.");
+            return ResponseEntity.badRequest().body("Token expirado. Por favor, solicite um novo email de confirmação.");
         }
 
         ClientModel user = confirmationToken.getUser();
@@ -214,6 +226,39 @@ public class AuthenticationController {
         user.setEmailConfirmado(true);
         repository.save(user);
         return ResponseEntity.ok(user.getLogin());
+    }
+
+    @PostMapping("/resend-token")
+    public ResponseEntity<String> resendConfirmationToken(@RequestParam("email") String email) {
+        ClientModel user = repository.findByEmail(email);
+        if (user == null) {
+            return ResponseEntity.badRequest().body("Usuário não encontrado com este email.");
+        }
+
+        if (user.isEmailConfirmado()) {
+            return ResponseEntity.badRequest().body("Esta conta já foi confirmada.");
+        }
+
+        // Deleta tokens antigos para evitar duplicatas
+        tokenRepository.deleteByUser(user);
+
+        String token = UUID.randomUUID().toString();
+        ConfirmationToken confirmationToken = new ConfirmationToken(
+                null, token,
+                LocalDateTime.now(),
+                LocalDateTime.now().plusMinutes(30),
+                null,
+                user);
+        tokenRepository.save(confirmationToken);
+
+        String link = "https://beta.redepatas.com/confirmEmail/" + token;
+        try {
+            emailService.enviarConfirmacao(user.getEmail(), user.getName(), link);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro ao enviar email de confirmação.");
+        }
+
+        return ResponseEntity.ok("Um novo email de confirmação foi enviado.");
     }
 
     @GetMapping("/confirm")

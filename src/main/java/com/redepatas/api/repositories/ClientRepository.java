@@ -14,6 +14,8 @@ import java.util.UUID;
 public interface ClientRepository extends JpaRepository<ClientModel, UUID> {
     UserDetails findByLogin(String login);
 
+    ClientModel findByEmail(String email);
+
     UserDetails findByPhoneNumber(String phoneNumber);
 
     UserDetails findByCPF(String cpf);
