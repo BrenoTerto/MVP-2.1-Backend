@@ -1,5 +1,6 @@
 package com.redepatas.api.services;
 
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
@@ -89,6 +90,35 @@ public class AsaasClientService {
             return response.getBody();
         } catch (RestClientException ex) {
             return "{\"error\": \"Erro ao criar cliente: " + ex.getMessage() + "\"}";
+        }
+    }
+
+    public String getLink(String idSub) {
+        String url = "https://sandbox.asaas.com/api/v3/subscriptions/" + idSub + "/payments";
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("access_token", accessToken);
+        HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+
+        try {
+            RestTemplate restTemplate = new RestTemplate();
+            ResponseEntity<String> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    requestEntity,
+                    String.class);
+
+            // Parse JSON e extrair campo "data"
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode rootNode = objectMapper.readTree(response.getBody());
+            JsonNode dataNode = rootNode.get("data");
+            JsonNode firstElement = dataNode.get(0);
+            String invoiceUrl = firstElement.get("invoiceUrl").asText();
+            // Retorna o conteúdo do campo "data" como String JSON
+            return invoiceUrl.toString();
+
+        } catch (RestClientException | IOException ex) {
+            return "{\"error\": \"Erro ao buscar link: " + ex.getMessage() + "\"}";
         }
     }
 

@@ -73,27 +73,26 @@ public class AssinaturaServices {
     public String iniciarAssinatura(ClientModel client, Long planoId) {
         PlanoAssinatura plano = planoAssinaturaRepository.findById(planoId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plano não encontrado"));
-    
+
         AssinaturaClienteModel assinatura = new AssinaturaClienteModel();
         assinatura.setCliente(client);
         assinatura.setPlano(plano);
         assinatura.setStatusAssinatura(StatusAssinatura.PENDENTE);
         assinatura.setDataInicio(LocalDateTime.now());
         assinatura.setDataFim(LocalDateTime.now().plusDays(plano.getDuracaoDias()));
-    
-        assinatura = assinaturaClienteRepository.save(assinatura); 
-    
+
+        assinatura = assinaturaClienteRepository.save(assinatura);
+
         LocalDate dataVencimento = LocalDate.now().plusDays(5);
         String dataVencimentoString = dataVencimento.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-    
+
         String responseAssinatura = asaasClientService.criarAssinatura(
-            client.getIdCustomer(),
-            plano.getPreco(),
-            plano.getNome(),
-            dataVencimentoString,
-            assinatura.getId().toString() 
-        );
-    
+                client.getIdCustomer(),
+                plano.getPreco(),
+                plano.getNome(),
+                dataVencimentoString,
+                assinatura.getId().toString());
+
         String idAsaasAssinatura;
         try {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -102,12 +101,11 @@ public class AssinaturaServices {
         } catch (Exception e) {
             throw new RuntimeException("Erro ao processar resposta do Asaas: " + e.getMessage(), e);
         }
-    
+
         assinatura.setIdAsaas(idAsaasAssinatura);
         assinaturaClienteRepository.save(assinatura);
-    
-        return "Assinatura criada com sucesso!";
+
+        return idAsaasAssinatura;
     }
-    
-    
+
 }

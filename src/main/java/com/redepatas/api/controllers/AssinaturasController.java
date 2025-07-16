@@ -4,16 +4,19 @@ import com.redepatas.api.dtos.AssinaturaDtos.AssinaturaAtivaDto;
 import com.redepatas.api.dtos.AssinaturaDtos.PlanoDto;
 import com.redepatas.api.models.AssinaturaClienteModel;
 import com.redepatas.api.models.PlanoAssinatura;
+import com.redepatas.api.repositories.AssinaturaClienteRepository;
 import com.redepatas.api.repositories.PlanoAssinaturaRepository;
 import com.redepatas.api.services.AsaasClientService;
 import com.redepatas.api.services.AssinaturaServices;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +30,9 @@ public class AssinaturasController {
 
     @Autowired
     private AssinaturaServices assinaturaService;
+
+    @Autowired
+    private AssinaturaClienteRepository assinaturaClienteRepository;
 
     @Autowired
     AsaasClientService asaasClientService;
@@ -71,4 +77,13 @@ public class AssinaturasController {
         return ResponseEntity.ok(resultado);
     }
 
+    @GetMapping("/getLink/{idSub}")
+    public String getLink(@PathVariable("idSub") String idSub) {
+        AssinaturaClienteModel assinatura = assinaturaClienteRepository.findByIdAsaas(idSub);
+        if (assinatura == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Nenhuma assinatura encontrada com esse ID");
+        }
+        return asaasClientService.getLink(idSub);
+    }
 }

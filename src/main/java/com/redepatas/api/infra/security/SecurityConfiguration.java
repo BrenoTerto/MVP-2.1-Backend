@@ -64,7 +64,8 @@ public class SecurityConfiguration {
                         // .permitAll()
                         // .requestMatchers("agendamentos/getAgendamento/{id}").permitAll()
 
-                        .requestMatchers(HttpMethod.POST, "/assinaturas/newSignature/{login}").hasRole("USER")
+                        .requestMatchers(HttpMethod.POST, "/assinaturas/newSignature/{login}").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/assinaturas/getLink/{idSub}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/assinaturas/myPlan").hasRole("USER")
                         .requestMatchers("/assinaturas/**").permitAll()
 

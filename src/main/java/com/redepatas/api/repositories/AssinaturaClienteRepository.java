@@ -9,5 +9,6 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface AssinaturaClienteRepository extends JpaRepository<AssinaturaClienteModel, UUID> {
-    
+  AssinaturaClienteModel findByIdAsaas(String idSub);
+
 }
