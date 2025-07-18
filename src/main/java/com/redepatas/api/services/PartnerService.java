@@ -26,6 +26,7 @@ import com.redepatas.api.repositories.PartnerRepository;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -320,7 +321,7 @@ public class PartnerService {
                         String urlStr = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=" +
                                         origemParam + "&destinations=" + destinosParam + "&departure_time=now" + "&key="
                                         + API_KEY;
-                        URL url = new URL(urlStr);
+                        URL url = new URI(urlStr).toURL();
                         HttpURLConnection con = (HttpURLConnection) url.openConnection();
                         con.setRequestMethod("GET");
 
