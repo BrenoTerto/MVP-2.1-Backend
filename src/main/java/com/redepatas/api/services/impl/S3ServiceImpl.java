@@ -1,8 +1,5 @@
 package com.redepatas.api.services.impl;
 
-
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,7 +33,6 @@ public class S3ServiceImpl implements IS3Service {
     private final S3Client s3Client;
     private final S3Presigner s3Presigner;
 
-    @Autowired
     public S3ServiceImpl(S3Client s3Client, S3Presigner s3Presigner) {
         this.s3Client = s3Client;
         this.s3Presigner = s3Presigner;

@@ -78,13 +78,13 @@ public class ClientModel implements UserDetails {
         // }
     }
 
-    private boolean isEmail(String login) {
-        return login.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
-    }
+    // private boolean isEmail(String login) {
+    //     return login.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
+    // }
 
-    private boolean isTelefone(String login) {
-        return login.matches("^\\d{10,11}$");
-    }
+    // private boolean isTelefone(String login) {
+    //     return login.matches("^\\d{10,11}$");
+    // }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

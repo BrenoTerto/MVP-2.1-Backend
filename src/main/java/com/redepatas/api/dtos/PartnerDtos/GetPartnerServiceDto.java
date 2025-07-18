@@ -1,6 +1,5 @@
 package com.redepatas.api.dtos.PartnerDtos;
 
-import java.time.LocalDate;
 import java.util.UUID;
 
 import jakarta.validation.constraints.NotNull;
