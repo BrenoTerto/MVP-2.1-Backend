@@ -307,4 +307,46 @@ public class AuthenticationController {
         passwordResetToken.delete(token);
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/reenviarEmailConfirmacao/{login}")
+    public ResponseEntity<String> reenviarEmailConfirmacao(@PathVariable String login) {
+        try {
+            ClientModel cliente = (ClientModel) repository.findByLogin(login);
+
+            if (cliente == null) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Usuário não encontrado");
+            }
+
+            if (cliente.isEmailConfirmado()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Este email já foi confirmado.");
+            }
+
+            // Busca o token de confirmação do usuário
+            Optional<ConfirmationToken> optionalToken = tokenRepository.findByUser(cliente);
+
+            if (optionalToken.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Nenhum token de confirmação encontrado para este usuário.");
+            }
+
+            ConfirmationToken confirmationToken = optionalToken.get();
+
+            // Verifica se o token expirou e, se necessário, cria um novo
+            if (confirmationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+                String novoToken = UUID.randomUUID().toString();
+                confirmationToken.setToken(novoToken);
+                confirmationToken.setCreatedAt(LocalDateTime.now());
+                confirmationToken.setExpiresAt(LocalDateTime.now().plusMinutes(30));
+                tokenRepository.save(confirmationToken);
+            }
+
+            // Envia o email de confirmação
+            String link = "http://localhost:5173/confirmEmail/" + confirmationToken.getToken();
+            emailService.enviarConfirmacao(cliente.getEmail(), cliente.getName(), link);
+
+            return ResponseEntity.ok("Email de confirmação reenviado com sucesso");
+
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno do servidor: " + e.getMessage());
+        }
+    }
 }
