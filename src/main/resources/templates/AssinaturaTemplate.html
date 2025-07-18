@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!DOCTYPE html>
+  <html lang="pt-br">
+
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!DOCTYPE html>
+    <html lang="pt-br">
+
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Confirme sua assinatura</title>
+    </head>
+
+  <body style="margin:0; padding:0; background-color:#f4f4f4;">
+    <table width="100%" cellpadding="0" cellspacing="0" border="0" style="font-family: Arial, sans-serif;">
+      <tr>
+        <td align="center">
+          <table width="100%" cellpadding="0" cellspacing="0" border="0"
+            style="max-width:600px; margin:0 auto; background-color:#ffffff;">
+
+            <!-- Logo como background -->
+            <tr>
+              <td
+                style="background-image: url('cid:imagemID'); background-size: cover; background-repeat: no-repeat; background-position: center; height: 150px; max-width: 600px;">
+                <div style="height:150px; line-height:150px; text-align:center;"></div>
+              </td>
+            </tr>
+
+            <!-- Conteúdo principal -->
+            <tr>
+              <td style="padding:20px; color:#333; font-size:16px;">
+                <p>Olá, <strong th:text="${nomeUsuario}">Nome do Usuário</strong>,</p>
+                <p>Sua assinatura está <span style="color:#04d9c4;"><strong>quase completa!</strong></span></p>
+                <p>Para concluir sua assinatura, clique no botão abaixo:</p>
+
+                <div style="text-align: center; margin: 20px;">
+                  <a th:href="${linkConfirmacao}"
+                    style="background-color:#982da6; color:white; padding:15px 0; text-decoration:none; border-radius:5px; font-weight:bold; display:block; width:100%; max-width: 600px; margin: 0 auto;">
+                    Concluir Assinatura
+                  </a>
+                </div>
+
+              </td>
+            </tr>
+
+            <!-- Rodapé -->
+            <tr>
+              <td align="center"
+                style="padding:15px 10px; background-color:#f1f1f1; font-size:13px; color:#666; border-top:1px solid #ddd;">
+                <p style="margin:5px 0;">&copy; 2025 Rede Patas. Todos os direitos reservados.</p>
+                <p style="margin:5px 0;">
+                  <a href="https://www.instagram.com/redepatas/" target="_blank"
+                    style="color:#7A3D98; text-decoration:none; font-weight:bold;">Instagram</a> |
+                  <a href="mailto:contato@redepatas.com"
+                    style="color:#7A3D98; text-decoration:none; font-weight:bold;">Contato</a>
+                </p>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+
+  </html>

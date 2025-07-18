@@ -73,6 +73,11 @@ public class AssinaturaServices {
     public String iniciarAssinatura(ClientModel client, Long planoId) {
         PlanoAssinatura plano = planoAssinaturaRepository.findById(planoId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plano não encontrado"));
+        AssinaturaClienteModel assinaturaExistente = assinaturaClienteRepository
+                .findByCliente_IdUser(client.getIdUser());
+        if (assinaturaExistente != null) {
+            return asaasClientService.getLink(assinaturaExistente.getIdAsaas());
+        }
 
         AssinaturaClienteModel assinatura = new AssinaturaClienteModel();
         assinatura.setCliente(client);
@@ -105,7 +110,7 @@ public class AssinaturaServices {
         assinatura.setIdAsaas(idAsaasAssinatura);
         assinaturaClienteRepository.save(assinatura);
 
-        return idAsaasAssinatura;
+        return asaasClientService.getLink(idAsaasAssinatura);
     }
 
 }

@@ -16,6 +16,7 @@ import com.redepatas.api.repositories.ClientRepository;
 import com.redepatas.api.repositories.ConfirmationTokenRepository;
 import com.redepatas.api.repositories.PasswordResetTokenRepository;
 import com.redepatas.api.services.AsaasClientService;
+import com.redepatas.api.services.AssinaturaServices;
 import com.redepatas.api.services.EmailService;
 import com.redepatas.api.services.UserServices;
 
@@ -51,6 +52,9 @@ public class AuthenticationController {
 
     @Autowired
     private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private AssinaturaServices assinaturaService;
 
     @Autowired
     private ClientRepository repository;
@@ -159,7 +163,7 @@ public class AuthenticationController {
                     null,
                     newUser);
 
-            String link = "https://beta.redepatas.com/confirmEmail/" + token;
+            String link = "http://localhost:5173/confirmEmail/" + token;
             emailService.enviarConfirmacao(data.email(), data.name(), link);
             tokenRepository.save(confirmationToken);
 
@@ -173,23 +177,23 @@ public class AuthenticationController {
         }
     }
 
-    @GetMapping("/confirmEmail/{token}")
-    public ResponseEntity<String> confirmEmail(@PathVariable String token) {
+    @GetMapping("/criarAssinatura/{token}")
+    public String confirmEmail(@PathVariable String token) {
         Optional<ConfirmationToken> optionalToken = tokenRepository.findByToken(token);
-
+        Long plano = (long) 1;
         if (optionalToken.isEmpty()) {
-            return ResponseEntity.badRequest().body("Token inválido ou não encontrado.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token inválido ou não encontrado!");
         }
 
         ConfirmationToken confirmationToken = optionalToken.get();
         ClientModel user = confirmationToken.getUser();
 
         if (confirmationToken.getConfirmedAt() != null) {
-            return ResponseEntity.ok(user.getLogin());
+            return assinaturaService.criarAssinatura(user.getLogin(), plano);
         }
 
         if (confirmationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
-            return ResponseEntity.badRequest().body("Token expirado.");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Link de confirmação expirado!");
         }
 
         String idCustomer;
@@ -197,8 +201,8 @@ public class AuthenticationController {
                 user.getPhoneNumber());
 
         if (clienteResponse == null || clienteResponse.contains("erro")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Erro ao criar cliente asaas, Erro: " + clienteResponse);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Erro ao criar cliente asaas, Erro: " + clienteResponse);
         }
 
         try {
@@ -206,15 +210,15 @@ public class AuthenticationController {
             JsonNode rootNode = objectMapper.readTree(clienteResponse);
             idCustomer = rootNode.get("id").asText();
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Erro ao processar resposta do Asaas: " + e.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Erro ao processar resposta do Asaas: " + e.getMessage());
         }
         user.setIdCustomer(idCustomer);
         confirmationToken.setConfirmedAt(LocalDateTime.now());
         tokenRepository.save(confirmationToken);
         user.setEmailConfirmado(true);
         repository.save(user);
-        return ResponseEntity.ok(user.getLogin());
+        return assinaturaService.criarAssinatura(user.getLogin(), plano);
     }
 
     @GetMapping("/confirm")
