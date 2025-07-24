@@ -33,6 +33,8 @@ public class SecurityConfiguration {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers("/auth/**").permitAll()
+                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/enviar-aviso").permitAll()
                         .requestMatchers(HttpMethod.POST, "/pets/newPet/{userId}").hasRole("USER")
                         .requestMatchers(HttpMethod.GET, "/pets/petsByClient/").hasRole("USER")
                         .requestMatchers(HttpMethod.DELETE, "/pets/deletePet/{id}").hasRole("USER")

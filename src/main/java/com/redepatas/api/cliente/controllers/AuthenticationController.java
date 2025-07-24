@@ -131,13 +131,17 @@ public class AuthenticationController {
                 return ResponseEntity.badRequest().body("CPF inválido.");
             }
 
-            boolean exists = this.repository.existsByLoginOrPhoneNumberOrCPF(
-                    data.login(),
+            if (this.repository.existsByLogin(data.login())) {
+                return ResponseEntity.badRequest().body("Login já cadastrados!");
+            } else if (this.repository.existsByCPF(data.CPF())) {
+                return ResponseEntity.badRequest().body("CPF já cadastrado");
+            }
+            boolean exists = this.repository.existsByEmailOuNumero(
                     data.numero(),
                     data.email());
 
             if (exists) {
-                return ResponseEntity.badRequest().body("Email, telefone ou CPF já cadastrados!");
+                return ResponseEntity.badRequest().body("Email ou telefone já cadastrados!");
             }
 
             String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());
@@ -156,13 +160,14 @@ public class AuthenticationController {
                     newUser);
 
             String link = "https://beta.redepatas.com/confirmEmail/" + token;
-            emailService.enviarConfirmacao(data.login(), data.name(), link);
+            emailService.enviarConfirmacao(data.email(), data.name(), link);
             tokenRepository.save(confirmationToken);
 
             return ResponseEntity.ok().body("Usuário cadastrado com sucesso!");
 
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Dados inválidos fornecidos!");
+            System.out.println(e);
+            return ResponseEntity.badRequest().body("Dados inválidos fornecidos!" + e);
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Erro interno no servidor.");
         }

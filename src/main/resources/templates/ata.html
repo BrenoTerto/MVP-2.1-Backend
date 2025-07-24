@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Teste Final de WebSocket</title>
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js" defer></script>
+
+  <script type="text/javascript" defer>
+    let stompClient = null;
+
+    function setConnected(connected) {
+      document.getElementById('connect').disabled = connected;
+      document.getElementById('disconnect').disabled = !connected;
+      document.getElementById('mensagens').innerHTML = '';
+    }
+
+    function connect() {
+      // Verifica se as bibliotecas existem antes de usar
+      if (typeof SockJS === 'undefined' || typeof Stomp === 'undefined') {
+        alert('Erro: Bibliotecas SockJS ou Stomp não foram carregadas. Verifique a aba Network (F12).');
+        return;
+      }
+
+      const socket = new SockJS('http://localhost:8080/ws');
+      stompClient = Stomp.over(socket);
+
+      stompClient.connect({}, function (frame) {
+        setConnected(true);
+        console.log('Conectado: ' + frame);
+
+        stompClient.subscribe('/topic/avisos', function (aviso) {
+          const mensagemRecebida = aviso.body;
+          const p = document.createElement('p');
+          p.innerHTML = '<b>Aviso:</b> ' + mensagemRecebida;
+          document.getElementById('mensagens').prepend(p);
+        });
+      }, function (error) {
+        // Adiciona um log de erro na conexão
+        console.error('Erro na conexão STOMP: ', error);
+        alert('Falha ao conectar. Verifique o console (F12) e se o backend está rodando e sem o erro 403.');
+      });
+    }
+
+    function disconnect() {
+      if (stompClient !== null) {
+        stompClient.disconnect();
+      }
+      setConnected(false);
+      console.log("Desconectado");
+    }
+  </script>
+</head>
+
+<body onload="disconnect()">
+  <h1>Ouvindo o Tópico /topic/avisos</h1>
+  <button id="connect" onclick="connect()">Conectar</button>
+  <button id="disconnect" onclick="disconnect()">Desconectar</button>
+  <hr>
+  <h3>Mensagens Recebidas:</h3>
+  <div id="mensagens"></div>
+</body>
+
+</html>

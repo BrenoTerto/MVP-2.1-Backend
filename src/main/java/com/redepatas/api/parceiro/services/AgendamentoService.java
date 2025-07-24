@@ -69,7 +69,6 @@ public class AgendamentoService {
                                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                                                 "Parceiro nao encontrado"));
 
-                // Busque o intervalo pelo ID usando o repository
                 HorarioIntervaloModel horarioIntervalo = horarioIntervaloRepository.findById(idIntervalo)
                                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
                                                 "Intervalo de horário não encontrado"));
