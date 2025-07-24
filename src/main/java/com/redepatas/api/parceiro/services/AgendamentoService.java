@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -18,6 +19,7 @@ import com.redepatas.api.cliente.models.PetModel;
 import com.redepatas.api.cliente.repositories.ClientRepository;
 import com.redepatas.api.cliente.repositories.PetRepository;
 import com.redepatas.api.cliente.services.EmailService;
+import com.redepatas.api.parceiro.dtos.AgedamentoDtos.AgendamentoNotificationDto;
 import com.redepatas.api.parceiro.dtos.AgedamentoDtos.AgendamentoResponseDto;
 import com.redepatas.api.parceiro.dtos.AgedamentoDtos.AvaliarServicoDto;
 import com.redepatas.api.parceiro.dtos.AgedamentoDtos.ClientAgendamentoDto;
@@ -48,12 +50,13 @@ public class AgendamentoService {
         private PetRepository petRepository;
 
         @Autowired
-        private EmailService emailService;
-        @Autowired
         private HorarioIntervaloRepository horarioIntervaloRepository;
 
+        @Autowired
+        private SimpMessagingTemplate messagingTemplate;
+
         public String criarAgendamento(String login, UUID idParceiro, UUID idPet, String servico,
-                        LocalDate dataAgendamento, UUID idIntervalo) throws MessagingException {
+                        LocalDate dataAgendamento, UUID idIntervalo) { 
 
                 ClientModel cliente = (ClientModel) clientRepository.findByLogin(login);
                 if (cliente == null) {
@@ -90,10 +93,22 @@ public class AgendamentoService {
                                 servico);
 
                 agendamentoRepository.save(agendamento);
+
+                String destination = "/topic/agendamentos/" + parceiro.getIdPartner().toString();
+
                 String intervalo = horarioIntervalo.getHorarioInicio() + " - " + horarioIntervalo.getHorarioFim();
-                emailService.enviarAgendamento(parceiro.getEmailContato(), parceiro.getName(), pet.getNome(),
-                                dataAgendamento, intervalo, agendamento.getId().toString());
-                return "Agendamento criado com sucesso! Aguarde a confirmação";
+                AgendamentoNotificationDto notificationPayload = new AgendamentoNotificationDto(
+                                agendamento.getId(),
+                                cliente.getName(),
+                                pet.getNome(),
+                                servico,
+                                dataAgendamento,
+                                intervalo);
+
+                System.out.println("Enviando notificação para o destino: " + destination);
+                messagingTemplate.convertAndSend(destination, notificationPayload);
+
+                return "Agendamento criado com sucesso! O parceiro foi notificado em tempo real.";
         }
 
         public AgendamentoResponseDto buscarPorId(UUID idAgendamento) {
@@ -216,4 +231,5 @@ public class AgendamentoService {
                 agendamentoRepository.save(agendamento);
                 return "Agendamento aceito com sucesso!";
         }
+
 }
