@@ -1,6 +1,5 @@
 package com.redepatas.api.infra.security;
 
-import com.redepatas.api.repositories.ClientRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,6 +11,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+
+import com.redepatas.api.cliente.repositories.ClientRepository;
 
 import java.io.IOException;
 

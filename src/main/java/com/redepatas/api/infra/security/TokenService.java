@@ -4,9 +4,9 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.redepatas.api.models.ClientModel;
-import com.redepatas.api.models.PasswordResetToken;
-import com.redepatas.api.repositories.PasswordResetTokenRepository;
+import com.redepatas.api.cliente.models.ClientModel;
+import com.redepatas.api.cliente.models.PasswordResetToken;
+import com.redepatas.api.cliente.repositories.PasswordResetTokenRepository;
 
 import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,7 +80,7 @@ public class TokenService {
         }
     }
 
-    public  PasswordResetToken validarTokenDeReset(String tokenPuro) {
+    public PasswordResetToken validarTokenDeReset(String tokenPuro) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hashBytes = digest.digest(tokenPuro.getBytes(StandardCharsets.UTF_8));

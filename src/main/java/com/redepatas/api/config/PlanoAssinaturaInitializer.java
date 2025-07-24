@@ -7,8 +7,8 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import com.redepatas.api.models.PlanoAssinatura;
-import com.redepatas.api.repositories.PlanoAssinaturaRepository;
+import com.redepatas.api.cliente.models.PlanoAssinatura;
+import com.redepatas.api.cliente.repositories.PlanoAssinaturaRepository;
 
 import jakarta.annotation.PostConstruct;
 
