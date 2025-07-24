@@ -18,9 +18,12 @@ import com.redepatas.api.repositories.PasswordResetTokenRepository;
 import com.redepatas.api.services.AsaasClientService;
 import com.redepatas.api.services.AssinaturaServices;
 import com.redepatas.api.services.EmailService;
+import com.redepatas.api.services.RateLimiterService;
 import com.redepatas.api.services.UserServices;
 
+import io.github.bucket4j.Bucket;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 
@@ -52,6 +55,9 @@ public class AuthenticationController {
 
     @Autowired
     private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private RateLimiterService rateLimiterService;
 
     @Autowired
     private AssinaturaServices assinaturaService;
@@ -163,7 +169,7 @@ public class AuthenticationController {
                     null,
                     newUser);
 
-            String link = "http://localhost:5173/confirmEmail/" + token;
+            String link = "https://assinatura.redepatas.com.br/confirmEmail/" + token;
             emailService.enviarConfirmacao(data.email(), data.name(), link);
             tokenRepository.save(confirmationToken);
 
@@ -308,8 +314,16 @@ public class AuthenticationController {
         return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/reenviarEmailConfirmacao/{login}")
-    public ResponseEntity<String> reenviarEmailConfirmacao(@PathVariable String login) {
+    @PostMapping("/reenviarEmail/{login}")
+    public ResponseEntity<String> reenviarEmailConfirmacao(@PathVariable String login, HttpServletRequest request) {
+
+        Bucket bucket = rateLimiterService.resolveBucket(login);
+
+        if (!bucket.tryConsume(1)) {
+            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                    .body("Aguarde 30 segundos antes de reenviar o email de confirmação.");
+        }
+
         try {
             ClientModel cliente = (ClientModel) repository.findByLogin(login);
 
@@ -321,16 +335,15 @@ public class AuthenticationController {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Este email já foi confirmado.");
             }
 
-            // Busca o token de confirmação do usuário
             Optional<ConfirmationToken> optionalToken = tokenRepository.findByUser(cliente);
 
             if (optionalToken.isEmpty()) {
-                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Nenhum token de confirmação encontrado para este usuário.");
+                return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body("Nenhum token de confirmação encontrado para este usuário.");
             }
 
             ConfirmationToken confirmationToken = optionalToken.get();
 
-            // Verifica se o token expirou e, se necessário, cria um novo
             if (confirmationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
                 String novoToken = UUID.randomUUID().toString();
                 confirmationToken.setToken(novoToken);
@@ -339,14 +352,15 @@ public class AuthenticationController {
                 tokenRepository.save(confirmationToken);
             }
 
-            // Envia o email de confirmação
-            String link = "http://localhost:5173/confirmEmail/" + confirmationToken.getToken();
+            String link = "https://assinatura.redepatas.com.br/confirmEmail/" + confirmationToken.getToken();
             emailService.enviarConfirmacao(cliente.getEmail(), cliente.getName(), link);
 
             return ResponseEntity.ok("Email de confirmação reenviado com sucesso");
 
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Erro interno do servidor: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro interno do servidor: " + e.getMessage());
         }
     }
+
 }

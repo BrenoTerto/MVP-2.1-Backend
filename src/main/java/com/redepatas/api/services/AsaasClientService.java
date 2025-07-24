@@ -23,11 +23,11 @@ import org.springframework.web.client.RestClientException;
 @Service
 public class AsaasClientService {
 
-    private static final String BASE_URL = "https://sandbox.asaas.com/api/v3/customers";
-
+    private static final String BASE_URL = "https://sandbox.asaas.com/api/v3/";
+    private static final String BASE_URL_PROD = "https://www.asaas.com/api/v3/";
     private final RestTemplate restTemplate;
 
-    @Value("${asaas.payments.sandbox}")
+    @Value("${asaas.payments.real}")
     private String accessToken;
 
     public AsaasClientService(RestTemplateBuilder builder) {
@@ -35,7 +35,7 @@ public class AsaasClientService {
     }
 
     public String verificarClienteExistente(String cpfCnpj) {
-        String url = BASE_URL + "?cpfCnpj=" + cpfCnpj;
+        String url = BASE_URL_PROD + "customers?cpfCnpj=" + cpfCnpj;
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("access_token", accessToken);
@@ -55,7 +55,7 @@ public class AsaasClientService {
 
                     if (dataArray.isArray() && dataArray.size() > 0) {
                         JsonNode customer = dataArray.get(0);
-                        return customer.path("id").asText(); // retorna o ID
+                        return customer.path("id").asText();
                     }
                 }
             }
@@ -86,7 +86,8 @@ public class AsaasClientService {
         HttpEntity<Map<String, String>> request = new HttpEntity<>(body, headers);
 
         try {
-            ResponseEntity<String> response = restTemplate.postForEntity(BASE_URL, request, String.class);
+            ResponseEntity<String> response = restTemplate.postForEntity(BASE_URL_PROD + "customers", request,
+                    String.class);
             return response.getBody();
         } catch (RestClientException ex) {
             return "{\"error\": \"Erro ao criar cliente: " + ex.getMessage() + "\"}";
@@ -94,7 +95,7 @@ public class AsaasClientService {
     }
 
     public String getLink(String idSub) {
-        String url = "https://sandbox.asaas.com/api/v3/subscriptions/" + idSub + "/payments";
+        String url = BASE_URL_PROD + "subscriptions/" + idSub + "/payments";
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("access_token", accessToken);
@@ -124,7 +125,7 @@ public class AsaasClientService {
 
     public String criarAssinatura(String customerId, BigDecimal valor, String descricao, String dataVencimento,
             String idAssinatura) {
-        String url = "https://sandbox.asaas.com/api/v3/subscriptions";
+        String url = BASE_URL_PROD + "subscriptions";
 
         Map<String, Object> body = new HashMap<>();
         body.put("billingType", "CREDIT_CARD");

@@ -113,8 +113,7 @@ public class EmailService {
         Context context = new Context();
         context.setVariable("nomeUsuario", nomeUsuario);
         context.setVariable("linkConfirmacao", linkConfirmacao);
-        String corpoHtml = templateEngine.process("confirmacaoTemplate", context);
-        System.out.println(linkConfirmacao);
+        String corpoHtml = templateEngine.process("AssinaturaTemplate", context);
         enviarEmail(para, "Confirme seu cadastro", corpoHtml, "Confirmação cadastral", "noreply");
     }
 

@@ -76,7 +76,11 @@ public class AssinaturaServices {
         AssinaturaClienteModel assinaturaExistente = assinaturaClienteRepository
                 .findByCliente_IdUser(client.getIdUser());
         if (assinaturaExistente != null) {
-            return asaasClientService.getLink(assinaturaExistente.getIdAsaas());
+            if (assinaturaExistente.getStatusAssinatura() == StatusAssinatura.PENDENTE) {
+                return asaasClientService.getLink(assinaturaExistente.getIdAsaas());
+            } else if (assinaturaExistente.getStatusAssinatura() == StatusAssinatura.ATIVA) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O cliente já possuí assinatura ativa");
+            }
         }
 
         AssinaturaClienteModel assinatura = new AssinaturaClienteModel();
