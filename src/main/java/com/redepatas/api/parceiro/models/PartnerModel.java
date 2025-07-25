@@ -39,11 +39,13 @@ public class PartnerModel {
     @Enumerated(EnumType.STRING)
     private TipoPartner tipo;
 
-    @OneToMany(mappedBy = "partner", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Servico> servicos;
+    // @OneToMany(mappedBy = "partner", cascade = CascadeType.ALL, orphanRemoval =
+    // true)
+    // private List<Servico> servicos;
 
-    @OneToMany(mappedBy = "partner", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<HorarioFuncionamentoModel> horariosFuncionamento;
+    // @OneToMany(mappedBy = "partner", cascade = CascadeType.ALL, orphanRemoval =
+    // true)
+    // private List<HorarioFuncionamentoModel> horariosFuncionamento;
 
     private String descricao;
 
@@ -56,9 +58,8 @@ public class PartnerModel {
             EnderecoPartner endereco,
             TipoPartner tipo,
             String descricao,
-            String tipoPet, // TODOS, GRANDE, PEQUENO
-            List<Servico> servicos,
-            List<HorarioFuncionamentoModel> horariosFuncionamento) {
+            String tipoPet // TODOS, GRANDE, PEQUENO
+    ) {
         this.name = name;
         this.imageUrl = imageUrl;
         this.cnpjCpf = cnpjCpf;
@@ -70,7 +71,5 @@ public class PartnerModel {
         this.tipo = tipo;
         this.tipoPet = tipoPet;
         this.descricao = descricao;
-        this.servicos = servicos;
-        this.horariosFuncionamento = horariosFuncionamento;
     }
 }

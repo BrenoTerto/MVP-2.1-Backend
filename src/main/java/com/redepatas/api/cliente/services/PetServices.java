@@ -9,7 +9,6 @@ import com.redepatas.api.cliente.models.PetModel;
 import com.redepatas.api.cliente.models.Vacina;
 import com.redepatas.api.cliente.repositories.ClientRepository;
 import com.redepatas.api.cliente.repositories.PetRepository;
-import com.redepatas.api.parceiro.repositories.AgendamentoRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -36,8 +35,6 @@ public class PetServices {
     IS3Service is3Service;
     @Autowired
     private ClientRepository clientRepository;
-    @Autowired
-    private AgendamentoRepository agendamentoRepository;
 
     public String updatePet(String login, UUID petId, PetUpdateDto dto) {
 
@@ -102,12 +99,6 @@ public class PetServices {
 
         if (!pet.getClient().getIdUser().equals(client.getIdUser())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Este pet não pertence ao cliente.");
-        }
-
-        boolean petTemAgendamento = agendamentoRepository.existsByPetModel(pet);
-        if (petTemAgendamento) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    "Este pet está vinculado a agendamentos e não pode ser excluído.");
         }
 
         petRepository.deleteById(petId);
