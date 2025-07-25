@@ -192,7 +192,7 @@ public class AuthenticationController {
         ClientModel user = confirmationToken.getUser();
 
         String idCustomer;
-        String clienteResponse = asaasClientService.criarCliente(user.getName(), user.getLogin(), user.getEmail(),
+        String clienteResponse = asaasClientService.criarCliente(user.getName(), user.getCPF(), user.getEmail(),
                 user.getPhoneNumber());
 
         if (clienteResponse == null || clienteResponse.contains("erro")) {
