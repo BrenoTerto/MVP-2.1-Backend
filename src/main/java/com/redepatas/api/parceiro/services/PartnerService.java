@@ -11,8 +11,11 @@ import com.redepatas.api.parceiro.models.PartnerModel;
 import com.redepatas.api.parceiro.models.Enum.DiaSemana;
 import com.redepatas.api.parceiro.repositories.EnderecoPartnerRepository;
 import com.redepatas.api.parceiro.repositories.PartnerRepository;
+import com.redepatas.api.cliente.services.FileService;
+import com.redepatas.api.cliente.services.IS3Service;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -21,6 +24,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.json.JSONArray;
@@ -30,6 +34,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -41,10 +46,20 @@ public class PartnerService {
         PartnerRepository partnerRepository;
         @Autowired
         ClientRepository clientRepository;
+        @Autowired
+        private FileService fileService;
+        @Autowired
+        IS3Service is3Service;
         @Value("${api.key.google.maps}")
         private String API_KEY;
 
-        public String createPartner(PartnerRecordDto dto) {
+        public String createPartner(PartnerRecordDto dto, MultipartFile image) {
+
+                // Validar se a imagem foi fornecida
+                if (image == null || image.isEmpty()) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                        "A imagem é obrigatória para o cadastro do parceiro.");
+                }
 
                 // Verificar se o login já existe
                 if (partnerRepository.findByLogin(dto.login()) != null) {
@@ -66,6 +81,19 @@ public class PartnerService {
                 // Criptografar a senha
                 String encryptedPassword = new BCryptPasswordEncoder().encode(dto.password());
 
+                // Processar imagem
+                String imageUrl;
+                try {
+                        MultipartFile webpFile = fileService.convertToWebP(image);
+                        Map<String, String> response = is3Service.uploadFile(webpFile, "partners").getBody();
+                        if (response == null || !response.containsKey("fileUrl")) {
+                                throw new RuntimeException("Erro ao fazer upload da imagem para a AWS.");
+                        }
+                        imageUrl = response.get("fileUrl");
+                } catch (IOException e) {
+                        throw new RuntimeException("Erro ao processar imagem para o avatar.", e);
+                }
+
                 EnderecoPartner endereco = new EnderecoPartner(
                                 dto.endereco().rua(),
                                 dto.endereco().bairro(),
@@ -80,7 +108,7 @@ public class PartnerService {
                                 dto.login(),
                                 encryptedPassword,
                                 dto.name(),
-                                dto.imageUrl(),
+                                imageUrl,
                                 dto.cnpjCpf(),
                                 dto.emailContato(),
                                 dto.numeroContato(),
