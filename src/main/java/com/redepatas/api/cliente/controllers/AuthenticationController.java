@@ -88,6 +88,8 @@ public class AuthenticationController {
             var token = tokenService.generateToken(client);
             return ResponseEntity.ok(new ReponseLoginDto(token));
 
+        } catch (ResponseStatusException e) {
+            throw e;
         } catch (org.springframework.security.core.AuthenticationException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas!");
         } catch (Exception e) {
