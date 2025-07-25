@@ -2,11 +2,17 @@ package com.redepatas.api.parceiro.models;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
 import com.redepatas.api.parceiro.models.Enum.TipoPartner;
+import com.redepatas.api.cliente.models.ClientRole;
+import com.redepatas.api.infra.security.TokenUser;
 
 @Table(name = "partner")
 @Entity(name = "partner")
@@ -14,10 +20,14 @@ import com.redepatas.api.parceiro.models.Enum.TipoPartner;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(of = "idPartner")
-public class PartnerModel {
+public class PartnerModel implements UserDetails, TokenUser {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID idPartner;
+
+    private String login;
+    private String password;
+    private ClientRole role;
 
     private String name;
 
@@ -50,6 +60,8 @@ public class PartnerModel {
     private String descricao;
 
     public PartnerModel(
+            String login,
+            String password,
             String name,
             String imageUrl,
             String cnpjCpf,
@@ -58,8 +70,12 @@ public class PartnerModel {
             EnderecoPartner endereco,
             TipoPartner tipo,
             String descricao,
-            String tipoPet // TODOS, GRANDE, PEQUENO
+            String tipoPet, // TODOS, GRANDE, PEQUENO
+            ClientRole role
     ) {
+        this.login = login;
+        this.password = password;
+        this.role = role;
         this.name = name;
         this.imageUrl = imageUrl;
         this.cnpjCpf = cnpjCpf;
@@ -71,5 +87,57 @@ public class PartnerModel {
         this.tipo = tipo;
         this.tipoPet = tipoPet;
         this.descricao = descricao;
+    }
+
+    // Implementação da interface UserDetails
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of(new SimpleGrantedAuthority("ROLE_PARTNER"));
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public String getUsername() {
+        return login;
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return true;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return true;
+    }
+
+    // Implementação da interface TokenUser
+    @Override
+    public String getLogin() {
+        return login;
+    }
+
+    @Override
+    public Object getRole() {
+        return role;
+    }
+
+    @Override
+    public UUID getId() {
+        return idPartner;
     }
 }

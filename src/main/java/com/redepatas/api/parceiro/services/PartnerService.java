@@ -1,6 +1,7 @@
 package com.redepatas.api.parceiro.services;
 
 import com.redepatas.api.cliente.repositories.ClientRepository;
+import com.redepatas.api.cliente.models.ClientRole;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.DistanceDurationDto;
 
 import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerRecordDto;
@@ -27,6 +28,7 @@ import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -44,6 +46,12 @@ public class PartnerService {
 
         public String createPartner(PartnerRecordDto dto) {
 
+                // Verificar se o login já existe
+                if (partnerRepository.findByLogin(dto.login()) != null) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                        "Já existe um parceiro com este login.");
+                }
+
                 if (partnerRepository.existsByCnpjCpf(dto.cnpjCpf())) {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                                         "Já existe um parceiro com este CNPJ/CPF.");
@@ -54,6 +62,9 @@ public class PartnerService {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                                         "Já existe um parceiro com este e-mail de contato.");
                 }
+
+                // Criptografar a senha
+                String encryptedPassword = new BCryptPasswordEncoder().encode(dto.password());
 
                 EnderecoPartner endereco = new EnderecoPartner(
                                 dto.endereco().rua(),
@@ -66,6 +77,8 @@ public class PartnerService {
                                 dto.endereco().lugar());
 
                 PartnerModel partner = new PartnerModel(
+                                dto.login(),
+                                encryptedPassword,
                                 dto.name(),
                                 dto.imageUrl(),
                                 dto.cnpjCpf(),
@@ -74,7 +87,8 @@ public class PartnerService {
                                 endereco,
                                 dto.categoria(),
                                 dto.descricao(),
-                                dto.tipoPet());
+                                dto.tipoPet(),
+                                ClientRole.PARTNER);
 
                 endereco.setPartnerModel(partner);
 

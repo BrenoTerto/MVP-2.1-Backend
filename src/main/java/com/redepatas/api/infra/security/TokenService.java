@@ -28,20 +28,25 @@ public class TokenService {
     @Autowired
     PasswordResetTokenRepository tokenRepository;
 
-    public String generateToken(ClientModel user) {
+    public String generateToken(TokenUser user) {
         try {
             Algorithm algorithm = Algorithm.HMAC256(secret);
             String token = JWT.create()
                     .withIssuer("auth-api")
                     .withSubject(user.getLogin())
                     .withClaim("role", user.getRole().toString())
-                    .withClaim("id", user.getIdUser().toString())
+                    .withClaim("id", user.getId().toString())
                     .withExpiresAt(genereteExperiatiopnDate())
                     .sign(algorithm);
             return token;
         } catch (JWTCreationException exception) {
             throw new RuntimeException("Erro enquanto o token estava sendo gerado", exception);
         }
+    }
+
+    // Método de sobrecarga para manter compatibilidade com ClientModel
+    public String generateToken(ClientModel user) {
+        return generateToken((TokenUser) user);
     }
 
     public String validateToken(String token) {

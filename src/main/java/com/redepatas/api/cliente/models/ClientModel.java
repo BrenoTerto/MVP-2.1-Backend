@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.redepatas.api.cliente.controllers.AssinaturaClienteModel;
+import com.redepatas.api.infra.security.TokenUser;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -27,7 +28,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(of = "idUser")
-public class ClientModel implements UserDetails {
+public class ClientModel implements UserDetails, TokenUser {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID idUser;
@@ -103,5 +104,11 @@ public class ClientModel implements UserDetails {
     @Override
     public boolean isEnabled() {
         return true;
+    }
+
+    // Implementação da interface TokenUser
+    @Override
+    public UUID getId() {
+        return this.idUser;
     }
 }

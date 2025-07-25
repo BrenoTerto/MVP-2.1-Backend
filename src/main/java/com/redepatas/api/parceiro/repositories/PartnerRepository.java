@@ -15,6 +15,8 @@ public interface PartnerRepository extends JpaRepository<PartnerModel, UUID> {
 
     boolean existsByEmailContato(String email);
 
+    PartnerModel findByLogin(String login);
+
     List<PartnerModel> findByEndereco_Cidade(String cidade);
 
 }

@@ -2,7 +2,8 @@ package com.redepatas.api.cliente.models;
 
 public enum ClientRole {
     ADMIN("admin"),
-    USER("user");
+    USER("user"),
+    PARTNER("partner");
 
     private String role;
 

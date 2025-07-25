@@ -10,6 +10,10 @@ import com.redepatas.api.parceiro.models.Enum.TipoPartner;
 
 public record PartnerRecordDto(
 
+        @NotBlank(message = "O login é obrigatório.") String login,
+
+        @NotBlank(message = "A senha é obrigatória.") String password,
+
         @NotBlank(message = "O nome é obrigatório.") String name,
 
         String imageUrl,
@@ -26,9 +30,9 @@ public record PartnerRecordDto(
 
         @NotNull(message = "A categoria é obrigatória.") TipoPartner categoria,
 
-        List<HorarioFuncionamentoDto> horariosFuncionamento,
+        // List<HorarioFuncionamentoDto> horariosFuncionamento,
 
-        @NotEmpty List<@Valid ServicoDto> servicos,
+        // @NotEmpty List<@Valid ServicoDto> servicos,
 
         String descricao
 
