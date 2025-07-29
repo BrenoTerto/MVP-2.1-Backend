@@ -41,27 +41,19 @@ public class PartnerController {
             @RequestPart(value = "image", required = false) MultipartFile image) throws com.fasterxml.jackson.core.JsonProcessingException {
         
         // Validar se o partnerData foi fornecido
-        if (partnerDataJson == null) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Os dados do parceiro são obrigatórios. Certifique-se de incluir o campo 'partnerData' com o JSON dos dados do parceiro no Multipart Form.");
-        }
-        
-        // Validar se o JSON não está vazio
-        if (partnerDataJson.trim().isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Os dados do parceiro não podem estar vazios.");
+        if (partnerDataJson == null || partnerDataJson.trim().isEmpty()) {
+            throw new IllegalArgumentException("Os dados do parceiro são obrigatórios.");
         }
 
         // Validar se a imagem foi fornecida
         if (image == null || image.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("A imagem é obrigatória para o cadastro do parceiro.");
+            throw new IllegalArgumentException("A imagem é obrigatória para o cadastro do parceiro.");
         }
 
-        // Converter JSON string para DTO
+        // Converter JSON string para DTO - JsonProcessingException será tratada pelo ExceptionHandler
         PartnerRecordDto partnerDto = objectMapper.readValue(partnerDataJson, PartnerRecordDto.class);
         
-        // Chamar o service
+        // Chamar o service - exceções são tratadas pelo PartnerExceptionHandler
         String savedPartner = partnerService.createPartner(partnerDto, image);
         return ResponseEntity.status(201).body(savedPartner);
     }

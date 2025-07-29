@@ -78,6 +78,37 @@ public class PartnerExceptionHandler {
     }
 
     /**
+     * Trata ResponseStatusException lançadas pelos services
+     */
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public ResponseEntity<String> handleResponseStatusException(org.springframework.web.server.ResponseStatusException ex) {
+        return ResponseEntity.status(ex.getStatusCode())
+                .body(ex.getReason());
+    }
+
+    /**
+     * Trata DataIntegrityViolationException (violações de constraints do banco)
+     */
+    @ExceptionHandler(org.springframework.dao.DataIntegrityViolationException.class)
+    public ResponseEntity<String> handleDataIntegrityViolation(org.springframework.dao.DataIntegrityViolationException ex) {
+        String message = ex.getMessage();
+        
+        if (message.contains("login")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Já existe um parceiro com este login.");
+        } else if (message.contains("cnpj") || message.contains("cpf")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Já existe um parceiro com este CNPJ/CPF.");
+        } else if (message.contains("email")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Já existe um parceiro com este email.");
+        } else {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Violação de restrição de dados: Alguns dados já existem no sistema.");
+        }
+    }
+
+    /**
      * Handler genérico para capturar exceções não tratadas especificamente
      * Útil para debug quando exceções não estão sendo capturadas
      */
@@ -85,7 +116,42 @@ public class PartnerExceptionHandler {
     public ResponseEntity<String> handleGenericException(Exception ex) {
         ex.printStackTrace();
         
+        String message = ex.getMessage();
+        
+        // Tratar exceções específicas de banco de dados
+        if (ex.getClass().getSimpleName().contains("TransactionSystemException") ||
+            message.contains("could not execute statement")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Erro de validação: Verifique se todos os campos obrigatórios estão preenchidos corretamente.");
+        }
+        
+        // Tratar violações de constraint unique
+        if (message.contains("login") || message.contains("duplicate key")) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Já existe um parceiro com este login ou CNPJ/CPF.");
+        }
+        
+        // Tratar erros de argumentos inválidos
+        if (ex instanceof IllegalArgumentException) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Dados inválidos: " + message);
+        }
+        
+        // Tratar erros de runtime do service
+        if (ex instanceof RuntimeException && message != null) {
+            if (message.contains("login")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Já existe um parceiro com este login.");
+            } else if (message.contains("cnpj") || message.contains("cpf")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Já existe um parceiro com este CNPJ/CPF.");
+            } else if (message.contains("email")) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                        .body("Já existe um parceiro com este email.");
+            }
+        }
+        
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body("ERRO INTERNO: " + ex.getClass().getSimpleName() + " - " + ex.getMessage());
+                .body("ERRO INTERNO: " + ex.getClass().getSimpleName() + " - " + message);
     }
 }
