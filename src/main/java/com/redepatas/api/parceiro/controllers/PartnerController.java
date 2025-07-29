@@ -37,16 +37,33 @@ public class PartnerController {
 
     @PostMapping("/create")
     public ResponseEntity<String> createPartner(
-            @RequestPart("partnerData") String partnerDataJson,
-            @RequestPart(value = "image", required = true) MultipartFile image) {
-        try {
-            // Converter JSON string para DTO
-            PartnerRecordDto partnerDto = objectMapper.readValue(partnerDataJson, PartnerRecordDto.class);
-            String savedPartner = partnerService.createPartner(partnerDto, image);
-            return ResponseEntity.status(201).body(savedPartner);
-        } catch (Exception e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Erro ao processar dados do parceiro: " + e.getMessage());
+            @RequestPart(value = "partnerData", required = false) String partnerDataJson,
+            @RequestPart(value = "image", required = false) MultipartFile image) throws com.fasterxml.jackson.core.JsonProcessingException {
+        
+        // Validar se o partnerData foi fornecido
+        if (partnerDataJson == null) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Os dados do parceiro são obrigatórios. Certifique-se de incluir o campo 'partnerData' com o JSON dos dados do parceiro no Multipart Form.");
         }
+        
+        // Validar se o JSON não está vazio
+        if (partnerDataJson.trim().isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("Os dados do parceiro não podem estar vazios.");
+        }
+
+        // Validar se a imagem foi fornecida
+        if (image == null || image.isEmpty()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                    .body("A imagem é obrigatória para o cadastro do parceiro.");
+        }
+
+        // Converter JSON string para DTO
+        PartnerRecordDto partnerDto = objectMapper.readValue(partnerDataJson, PartnerRecordDto.class);
+        
+        // Chamar o service
+        String savedPartner = partnerService.createPartner(partnerDto, image);
+        return ResponseEntity.status(201).body(savedPartner);
     }
 
     @PostMapping("/login")

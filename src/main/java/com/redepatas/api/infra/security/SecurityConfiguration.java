@@ -35,6 +35,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/enviar-aviso").permitAll()
+                        .requestMatchers("/servicos/**").permitAll() // TODO: Restringir acesso ao PARTNER
                         .requestMatchers(HttpMethod.POST, "/pets/newPet/{userId}").hasRole("USER")
                         .requestMatchers(HttpMethod.GET, "/pets/petsByClient/").hasRole("USER")
                         .requestMatchers(HttpMethod.DELETE, "/pets/deletePet/{id}").hasRole("USER")
