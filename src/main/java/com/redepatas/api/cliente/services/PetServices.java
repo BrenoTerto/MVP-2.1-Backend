@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -151,17 +152,20 @@ public class PetServices {
     }
 
     private GetPetsDto convertToGetPetsDto(PetModel pet) {
+        Integer idade = pet.getDataNascimento() != null ? LocalDate.now().getYear() - pet.getDataNascimento().getYear()
+                : null;
         return new GetPetsDto(
                 pet.getIdPet(),
                 pet.getRgPet(),
                 pet.getAvatarUrl(),
                 pet.getNome(),
+                idade,
                 pet.getEspecie(),
                 pet.getRaca(),
                 pet.getObservacoes(),
                 pet.getCastrado(),
                 pet.getSociavel(),
-                convertToVacinaDto(pet.getVacinas()), // Converte a lista de Vacinas, se necessário
+                convertToVacinaDto(pet.getVacinas()),
                 pet.getDataNascimento(),
                 pet.getSexo(),
                 pet.getPeso(),

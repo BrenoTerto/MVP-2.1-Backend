@@ -3,12 +3,15 @@ package com.redepatas.api.parceiro.controllers;
 import com.redepatas.api.cliente.dtos.ReponseLoginDto;
 import com.redepatas.api.cliente.models.AuthenticationDTO;
 import com.redepatas.api.infra.security.TokenService;
+import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerDto;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerRecordDto;
 import com.redepatas.api.parceiro.models.PartnerModel;
 import com.redepatas.api.parceiro.services.PartnerService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.validation.Valid;
+
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -38,8 +41,9 @@ public class PartnerController {
     @PostMapping("/create")
     public ResponseEntity<String> createPartner(
             @RequestPart(value = "partnerData", required = false) String partnerDataJson,
-            @RequestPart(value = "image", required = false) MultipartFile image) throws com.fasterxml.jackson.core.JsonProcessingException {
-        
+            @RequestPart(value = "image", required = false) MultipartFile image)
+            throws com.fasterxml.jackson.core.JsonProcessingException {
+
         // Validar se o partnerData foi fornecido
         if (partnerDataJson == null || partnerDataJson.trim().isEmpty()) {
             throw new IllegalArgumentException("Os dados do parceiro são obrigatórios.");
@@ -50,9 +54,10 @@ public class PartnerController {
             throw new IllegalArgumentException("A imagem é obrigatória para o cadastro do parceiro.");
         }
 
-        // Converter JSON string para DTO - JsonProcessingException será tratada pelo ExceptionHandler
+        // Converter JSON string para DTO - JsonProcessingException será tratada pelo
+        // ExceptionHandler
         PartnerRecordDto partnerDto = objectMapper.readValue(partnerDataJson, PartnerRecordDto.class);
-        
+
         // Chamar o service - exceções são tratadas pelo PartnerExceptionHandler
         String savedPartner = partnerService.createPartner(partnerDto, image);
         return ResponseEntity.status(201).body(savedPartner);
@@ -67,7 +72,8 @@ public class PartnerController {
             PartnerModel partner = (PartnerModel) auth.getPrincipal();
 
             // if (!partner.isEmailConfirmado()) {
-            //     throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cadastro não confirmado!");
+            // throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cadastro não
+            // confirmado!");
             // }
 
             var token = tokenService.generateToken(partner);
@@ -80,14 +86,10 @@ public class PartnerController {
         }
     }
 
-    // @PostMapping("/getAll")
-    // public List<PartnerDto> getAllPartner(
-    // @RequestBody @Valid getPartnerDtos dtos,
-    // @AuthenticationPrincipal UserDetails userDetails) {
-    // return partnerService.getAllPartners(dtos.porte(), userDetails.getUsername(),
-    // dtos.nomeServico(), dtos.rua(),
-    // dtos.bairro(), dtos.cidade());
-    // }
+    @PostMapping("/getAll") // VAI SER APAGADO FUTURAMENTE
+    public List<PartnerDto> getAllPartner() {
+        return partnerService.getAllPartners();
+    }
 
     // @PostMapping("/getServices")
     // public ResponseEntity<PartenerServicesDto> getPartnerService(

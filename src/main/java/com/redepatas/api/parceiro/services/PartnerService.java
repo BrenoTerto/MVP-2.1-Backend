@@ -1,9 +1,10 @@
 package com.redepatas.api.parceiro.services;
 
 import com.redepatas.api.cliente.repositories.ClientRepository;
+import com.redepatas.api.cliente.dtos.UserDtos.EnderecoDto;
 import com.redepatas.api.cliente.models.ClientRole;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.DistanceDurationDto;
-
+import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerDto;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerRecordDto;
 
 import com.redepatas.api.parceiro.models.EnderecoPartner;
@@ -204,6 +205,42 @@ public class PartnerService {
                                 .replaceAll("[\\p{InCombiningDiacriticalMarks}]", "")
                                 .toLowerCase()
                                 .trim();
+        }
+
+        public List<PartnerDto> getAllPartners() {
+                List<PartnerModel> partners = partnerRepository.findAll();
+
+                if (partners.isEmpty()) {
+                        return Collections.emptyList();
+                }
+
+                List<PartnerDto> partnerDtos = partners.stream()
+                                .map(partner -> {
+                                        EnderecoPartner endereco = partner.getEndereco();
+                                        EnderecoDto enderecoDto = new EnderecoDto(
+                                                        endereco.getRua(),
+                                                        endereco.getBairro(),
+                                                        endereco.getCidade(),
+                                                        endereco.getEstado(),
+                                                        endereco.getCep(),
+                                                        API_KEY,
+                                                        API_KEY,
+                                                        endereco.getNumero(),
+                                                        endereco.getComplemento(),
+                                                        false);
+                                        return new PartnerDto(
+                                                        partner.getId(),
+                                                        partner.getImageUrl(),
+                                                        partner.getName(),
+                                                        partner.getEmailContato(),
+                                                        partner.getDescricao(),
+                                                        partner.getAvaliacao(),
+                                                        enderecoDto);
+                                })
+                                .collect(Collectors.toList());
+                // ...existing code...
+
+                return partnerDtos;
         }
 
 }

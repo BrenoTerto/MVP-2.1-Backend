@@ -8,29 +8,29 @@ import com.redepatas.api.parceiro.models.Enum.TipoPartner;
 
 public record PartnerRecordDto(
 
-        @NotBlank(message = "O login é obrigatório.") String login,
+                @NotBlank(message = "O login é obrigatório.") String login,
 
-        @NotBlank(message = "A senha é obrigatória.") String password,
+                @NotBlank(message = "O campo password é obrigatória.") String password,
 
-        @NotBlank(message = "O nome é obrigatório.") String name,
+                @NotBlank(message = "O nome é obrigatório.") String name,
 
-        String imageUrl,
+                String imageUrl,
 
-        @NotNull(message = "O campo email é obrigatório.") String emailContato,
+                @NotNull(message = "O campo email é obrigatório.") String emailContato,
 
-        @NotNull(message = "O numero de telefone é obrigatório") String numeroContato,
+                @NotNull(message = "O numero de telefone é obrigatório") String numeroContato,
 
-        @NotEmpty(message = "O tipo de animal é obrigatório.") String tipoPet,
+                @NotEmpty(message = "O tipo de animal é obrigatório.") String tipoPet,
 
-        @NotNull(message = "O endereço é obrigatório.") @Valid EnderecoDto endereco,
+                @NotNull(message = "O endereço é obrigatório.") @Valid EnderecoDto endereco,
 
-        @NotNull(message = "A categoria é obrigatória.") TipoPartner categoria,
+                @NotNull(message = "A categoria é obrigatória.") TipoPartner categoria,
 
-        // List<HorarioFuncionamentoDto> horariosFuncionamento,
+                // List<HorarioFuncionamentoDto> horariosFuncionamento,
 
-        // @NotEmpty List<@Valid ServicoDto> servicos,
+                // @NotEmpty List<@Valid ServicoDto> servicos,
 
-        String descricao
+                String descricao
 
 ) {
 }
