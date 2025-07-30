@@ -3,8 +3,6 @@ package com.redepatas.api.parceiro.dtos.PartnerDtos;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.*;
 
-import java.util.List;
-
 import com.redepatas.api.cliente.dtos.UserDtos.EnderecoDto;
 import com.redepatas.api.parceiro.models.Enum.TipoPartner;
 
@@ -17,8 +15,6 @@ public record PartnerRecordDto(
         @NotBlank(message = "O nome é obrigatório.") String name,
 
         String imageUrl,
-
-        @NotBlank(message = "O CNPJ ou CPF é obrigatório.") String cnpjCpf,
 
         @NotNull(message = "O campo email é obrigatório.") String emailContato,
 

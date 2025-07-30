@@ -18,6 +18,7 @@ import com.redepatas.api.cliente.services.AsaasClientService;
 import com.redepatas.api.cliente.services.EmailService;
 import com.redepatas.api.cliente.services.UserServices;
 import com.redepatas.api.infra.security.TokenService;
+import com.redepatas.api.utils.ValidationUtil;
 
 import jakarta.mail.MessagingException;
 import jakarta.transaction.Transactional;
@@ -97,39 +98,10 @@ public class AuthenticationController {
         }
     }
 
-    public static boolean isCPFValido(String cpf) {
-
-        cpf = cpf.replaceAll("[^\\d]", "");
-
-        if (cpf.length() != 11 || cpf.matches("(\\d)\1{10}"))
-            return false;
-
-        try {
-            int soma = 0, peso = 10;
-            for (int i = 0; i < 9; i++) {
-                soma += (cpf.charAt(i) - '0') * peso--;
-            }
-            int digito1 = 11 - (soma % 11);
-            digito1 = (digito1 >= 10) ? 0 : digito1;
-
-            soma = 0;
-            peso = 11;
-            for (int i = 0; i < 10; i++) {
-                soma += (cpf.charAt(i) - '0') * peso--;
-            }
-            int digito2 = 11 - (soma % 11);
-            digito2 = (digito2 >= 10) ? 0 : digito2;
-
-            return cpf.charAt(9) - '0' == digito1 && cpf.charAt(10) - '0' == digito2;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
     @PostMapping("/register")
     public ResponseEntity<String> register(@RequestBody @Valid RegisterDTO data) {
         try {
-            if (!isCPFValido(data.CPF())) {
+            if (!ValidationUtil.isCPFValido(data.CPF())) {
                 return ResponseEntity.badRequest().body("CPF inválido.");
             }
 

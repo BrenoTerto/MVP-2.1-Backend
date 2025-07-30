@@ -1,7 +1,6 @@
 package com.redepatas.api.parceiro.models;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -35,9 +34,6 @@ public class PartnerModel implements UserDetails, TokenUser {
 
     private String imageUrl;
 
-    @NotNull(message = "CNPJ/CPF não pode ser nulo")
-    private String cnpjCpf;
-
     private Long avaliacao;
     private Integer qtdAvaliacoes;
 
@@ -67,7 +63,6 @@ public class PartnerModel implements UserDetails, TokenUser {
             String password,
             String name,
             String imageUrl,
-            String cnpjCpf,
             String emailContato,
             String numeroContato,
             EnderecoPartner endereco,
@@ -81,7 +76,6 @@ public class PartnerModel implements UserDetails, TokenUser {
         this.role = role;
         this.name = name;
         this.imageUrl = imageUrl;
-        this.cnpjCpf = cnpjCpf;
         this.avaliacao = 5L;
         this.qtdAvaliacoes = 1;
         this.emailContato = emailContato;

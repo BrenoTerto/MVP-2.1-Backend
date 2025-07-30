@@ -11,8 +11,6 @@ import java.util.UUID;
 @Repository
 public interface PartnerRepository extends JpaRepository<PartnerModel, UUID> {
 
-    boolean existsByCnpjCpf(String cnpjCpf);
-
     boolean existsByEmailContato(String email);
 
     PartnerModel findByLogin(String login);

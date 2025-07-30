@@ -96,9 +96,6 @@ public class PartnerExceptionHandler {
         if (message.contains("login")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Já existe um parceiro com este login.");
-        } else if (message.contains("cnpj") || message.contains("cpf")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Já existe um parceiro com este CNPJ/CPF.");
         } else if (message.contains("email")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Já existe um parceiro com este email.");
@@ -128,7 +125,7 @@ public class PartnerExceptionHandler {
         // Tratar violações de constraint unique
         if (message.contains("login") || message.contains("duplicate key")) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Já existe um parceiro com este login ou CNPJ/CPF.");
+                    .body("Já existe um parceiro com este login.");
         }
         
         // Tratar erros de argumentos inválidos
@@ -142,9 +139,6 @@ public class PartnerExceptionHandler {
             if (message.contains("login")) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("Já existe um parceiro com este login.");
-            } else if (message.contains("cnpj") || message.contains("cpf")) {
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                        .body("Já existe um parceiro com este CNPJ/CPF.");
             } else if (message.contains("email")) {
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                         .body("Já existe um parceiro com este email.");

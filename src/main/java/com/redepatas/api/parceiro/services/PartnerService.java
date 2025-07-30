@@ -13,6 +13,7 @@ import com.redepatas.api.parceiro.repositories.EnderecoPartnerRepository;
 import com.redepatas.api.parceiro.repositories.PartnerRepository;
 import com.redepatas.api.cliente.services.FileService;
 import com.redepatas.api.cliente.services.IS3Service;
+import com.redepatas.api.utils.ValidationUtil;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -55,6 +56,12 @@ public class PartnerService {
 
         public String createPartner(PartnerRecordDto dto, MultipartFile image) {
 
+                // Validar se o login é um CPF ou CNPJ válido
+                if (!ValidationUtil.isDocumentoValido(dto.login())) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                                        "O login deve ser um CPF ou CNPJ válido.");
+                }
+
                 // Validar se a imagem foi fornecida
                 if (image == null || image.isEmpty()) {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -65,11 +72,6 @@ public class PartnerService {
                 if (partnerRepository.findByLogin(dto.login()) != null) {
                         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                                         "Já existe um parceiro com este login.");
-                }
-
-                if (partnerRepository.existsByCnpjCpf(dto.cnpjCpf())) {
-                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                                        "Já existe um parceiro com este CNPJ/CPF.");
                 }
 
                 if (dto.emailContato() != null && !dto.emailContato().isBlank()
@@ -114,7 +116,6 @@ public class PartnerService {
                                 encryptedPassword,
                                 dto.name(),
                                 imageUrl,
-                                dto.cnpjCpf(),
                                 dto.emailContato(),
                                 dto.numeroContato(),
                                 endereco,
