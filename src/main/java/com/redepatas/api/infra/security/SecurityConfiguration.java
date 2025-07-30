@@ -65,7 +65,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/assinaturas/myPlan").hasRole("USER")
                         .requestMatchers("/assinaturas/**").permitAll()
 
-                        .requestMatchers(HttpMethod.POST, "/partners/getAll").hasRole("USER")
+                        .requestMatchers(HttpMethod.POST, "/partners/getAll").permitAll()
                         .requestMatchers(HttpMethod.POST, "/partners/getServices")
                         .hasRole("USER")
                         .requestMatchers("/partners/**").permitAll()
@@ -81,39 +81,10 @@ public class SecurityConfiguration {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        
-        // Detectar ambiente e configurar origins apropriados
-        String[] allowedOrigins;
-        String activeProfile = System.getProperty("spring.profiles.active", "development");
-        
-        if ("production".equals(activeProfile)) {
-            // Produção - Origins específicos
-            allowedOrigins = new String[]{
-                "https://redepatas.com",
-                "https://www.redepatas.com",
-                "https://apirede.iandev.site"
-            };
-        } else {
-            // Desenvolvimento - Origins locais + produção para testes
-            allowedOrigins = new String[]{
-                "http://localhost:3000",          // React padrão
-                "http://localhost:5173",          // Vite desenvolvimento
-                "http://localhost:8080",          // Backend local
-                "https://localhost:5173",         // Vite com HTTPS
-                "https://apirede.iandev.site",    // API produção para testes
-                "https://redepatas.com",          // Frontend produção para testes
-                "https://www.redepatas.com",      // Frontend produção com www
-                "http://redepatas.com",           // Frontend produção HTTP
-                "http://www.redepatas.com"        // Frontend produção HTTP com www
-            };
-        }
-        
-        configuration.setAllowedOrigins(Arrays.asList(allowedOrigins));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
-        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowedOriginPatterns(Arrays.asList("*"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
         configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L);
-        
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
