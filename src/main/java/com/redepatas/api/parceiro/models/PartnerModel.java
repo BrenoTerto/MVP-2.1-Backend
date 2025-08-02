@@ -69,8 +69,7 @@ public class PartnerModel implements UserDetails, TokenUser {
             TipoPartner tipo,
             String descricao,
             String tipoPet, // TODOS, GRANDE, PEQUENO
-            ClientRole role
-    ) {
+            ClientRole role) {
         this.login = login;
         this.password = password;
         this.role = role;
@@ -86,7 +85,6 @@ public class PartnerModel implements UserDetails, TokenUser {
         this.descricao = descricao;
     }
 
-    // Implementação da interface UserDetails
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return List.of(new SimpleGrantedAuthority("ROLE_PARTNER"));

@@ -97,7 +97,6 @@ public class PartnerService {
                         throw new RuntimeException("Erro ao processar imagem para o avatar.", e);
                 }
 
-                // Validar se endereco não é null (proteção adicional)
                 if (dto.endereco() == null) {
                         throw new RuntimeException("Endereço é obrigatório para criar um parceiro.");
                 }

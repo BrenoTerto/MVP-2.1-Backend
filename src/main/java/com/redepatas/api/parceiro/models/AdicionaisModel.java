@@ -31,9 +31,6 @@ public class AdicionaisModel {
     @NotNull(message = "O preço pequeno não pode ser nulo")
     @Positive(message = "Preço pequeno deve ser maior que zero")
     private double precoPequeno;
-    
     private Double precoGrande;
-    
-    @NotNull(message = "Indicação se aceita pet grande é obrigatória")
-    private Boolean aceitaPetGrande = true;
+
 }
