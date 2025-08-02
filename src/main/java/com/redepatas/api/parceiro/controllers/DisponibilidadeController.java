@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,25 +25,33 @@ import com.redepatas.api.parceiro.dtos.DisponibilidadeDtos.AtualizarDisponibilid
 import com.redepatas.api.parceiro.dtos.DisponibilidadeDtos.CriarDisponibilidadeDTO;
 import com.redepatas.api.parceiro.dtos.DisponibilidadeDtos.DisponibilidadeResponseDTO;
 import com.redepatas.api.parceiro.dtos.DisponibilidadeDtos.SlotsDisponiveisDTO;
+import com.redepatas.api.parceiro.models.PartnerModel;
 import com.redepatas.api.parceiro.services.DisponibilidadeServicoService;
 
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/servicos/{servicoId}/disponibilidade")
+@RequestMapping("/parceiros/servicos/{servicoId}/disponibilidade")
 @Validated
 public class DisponibilidadeController {
 
     @Autowired
     private DisponibilidadeServicoService disponibilidadeService;
 
-    @PostMapping("/parceiro/{parceiroId}")
+    @PostMapping
     public ResponseEntity<?> criarDisponibilidade(
             @PathVariable UUID servicoId,
-            @PathVariable UUID parceiroId,
             @Valid @RequestBody CriarDisponibilidadeDTO dto) {
         try {
-            DisponibilidadeResponseDTO disponibilidade = disponibilidadeService.criarDisponibilidade(servicoId, parceiroId, dto);
+            // Obter o parceiro autenticado
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !(authentication.getPrincipal() instanceof PartnerModel)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Acesso negado: usuário não autenticado como parceiro");
+            }
+            
+            PartnerModel parceiroLogado = (PartnerModel) authentication.getPrincipal();
+            
+            DisponibilidadeResponseDTO disponibilidade = disponibilidadeService.criarDisponibilidade(servicoId, parceiroLogado.getIdPartner(), dto);
             return ResponseEntity.status(HttpStatus.CREATED).body(disponibilidade);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
@@ -52,9 +62,22 @@ public class DisponibilidadeController {
     }
 
     @GetMapping
-    public ResponseEntity<List<DisponibilidadeResponseDTO>> listarDisponibilidades(@PathVariable UUID servicoId) {
-        List<DisponibilidadeResponseDTO> disponibilidades = disponibilidadeService.listarDisponibilidadePorServico(servicoId);
-        return ResponseEntity.ok(disponibilidades);
+    public ResponseEntity<?> listarDisponibilidades(@PathVariable UUID servicoId) {
+        try {
+            // Obter o parceiro autenticado
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !(authentication.getPrincipal() instanceof PartnerModel)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Acesso negado: usuário não autenticado como parceiro");
+            }
+            
+            PartnerModel parceiroLogado = (PartnerModel) authentication.getPrincipal();
+            
+            List<DisponibilidadeResponseDTO> disponibilidades = disponibilidadeService.listarDisponibilidadePorServico(servicoId, parceiroLogado.getIdPartner());
+            return ResponseEntity.ok(disponibilidades);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro interno do servidor: " + e.getMessage());
+        }
     }
 
     @GetMapping("/slots")

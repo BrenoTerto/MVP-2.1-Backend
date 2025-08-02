@@ -44,6 +44,11 @@ public class DisponibilidadeServicoService {
         ServicoModel servico = servicoRepository.findById(servicoId)
                 .orElseThrow(() -> new IllegalArgumentException("Serviço não encontrado"));
 
+        // Verificar se o serviço pertence ao parceiro autenticado
+        if (!servico.getParceiro().getIdPartner().equals(parceiroId)) {
+            throw new IllegalArgumentException("Você não tem permissão para criar disponibilidade para este serviço");
+        }
+
         // Buscar parceiro
         PartnerModel parceiro = partnerRepository.findById(parceiroId)
                 .orElseThrow(() -> new IllegalArgumentException("Parceiro não encontrado"));
@@ -73,6 +78,23 @@ public class DisponibilidadeServicoService {
     }
 
     public List<DisponibilidadeResponseDTO> listarDisponibilidadePorServico(UUID servicoId) {
+        List<DisponibilidadeServicoModel> disponibilidades = 
+                disponibilidadeRepository.findByServicoIdAndAtivoTrue(servicoId);
+        
+        return disponibilidades.stream()
+                .map(this::mapToResponseDTO)
+                .toList();
+    }
+    
+    public List<DisponibilidadeResponseDTO> listarDisponibilidadePorServico(UUID servicoId, UUID parceiroId) {
+        // Verificar se o serviço pertence ao parceiro
+        ServicoModel servico = servicoRepository.findById(servicoId)
+                .orElseThrow(() -> new IllegalArgumentException("Serviço não encontrado"));
+        
+        if (!servico.getParceiro().getIdPartner().equals(parceiroId)) {
+            throw new IllegalArgumentException("Você não tem permissão para ver disponibilidades deste serviço");
+        }
+        
         List<DisponibilidadeServicoModel> disponibilidades = 
                 disponibilidadeRepository.findByServicoIdAndAtivoTrue(servicoId);
         
