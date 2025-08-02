@@ -8,29 +8,23 @@ import com.redepatas.api.parceiro.models.Enum.TipoPartner;
 
 public record PartnerRecordDto(
 
-                @NotBlank(message = "O login é obrigatório.") String login,
+    @Pattern(regexp = "(\\d{11}|\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}|\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2})", message = "O login deve ser um CPF (apenas números ou formato XXX.XXX.XXX-XX) ou CNPJ (formato XX.XXX.XXX/XXXX-XX).") @NotBlank(message = "O login é obrigatório.") String login,
 
-                @NotBlank(message = "O campo password é obrigatória.") String password,
+    @NotBlank(message = "O campo password é obrigatória.") String password,
 
-                @NotBlank(message = "O nome é obrigatório.") String name,
+    @NotBlank(message = "O nome é obrigatório.") String name,
 
-                String imageUrl,
+    @NotNull(message = "O campo email é obrigatório.") String emailContato,
 
-                @NotNull(message = "O campo email é obrigatório.") String emailContato,
+    @NotNull(message = "O numero de telefone é obrigatório") String numeroContato,
 
-                @NotNull(message = "O numero de telefone é obrigatório") String numeroContato,
+    @NotEmpty(message = "O tipo de animal é obrigatório.") String tipoPet,
 
-                @NotEmpty(message = "O tipo de animal é obrigatório.") String tipoPet,
+    @NotNull(message = "O endereço é obrigatório.") @Valid EnderecoDto endereco,
 
-                @NotNull(message = "O endereço é obrigatório.") @Valid EnderecoDto endereco,
+    @NotNull(message = "A categoria é obrigatória.") TipoPartner categoria,
 
-                @NotNull(message = "A categoria é obrigatória.") TipoPartner categoria,
-
-                // List<HorarioFuncionamentoDto> horariosFuncionamento,
-
-                // @NotEmpty List<@Valid ServicoDto> servicos,
-
-                String descricao
+    String descricao
 
 ) {
 }
