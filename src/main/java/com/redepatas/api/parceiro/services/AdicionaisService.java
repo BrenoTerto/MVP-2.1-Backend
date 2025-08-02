@@ -90,28 +90,6 @@ public class AdicionaisService {
                 .collect(Collectors.toList());
     }
 
-    public Optional<AdicionalResponseDTO> buscarAdicionalPorId(UUID adicionalId, UUID servicoId, UUID parceiroId) {
-        // Verificar se o serviço existe e pertence ao parceiro
-        Optional<ServicoModel> servicoOpt = servicoRepository.findById(servicoId);
-        if (servicoOpt.isEmpty()) {
-            throw new IllegalArgumentException("Serviço não encontrado com ID: " + servicoId);
-        }
-
-        ServicoModel servico = servicoOpt.get();
-
-        // Verificar se o serviço pertence ao parceiro autenticado
-        if (!servico.getParceiro().getIdPartner().equals(parceiroId)) {
-            throw new IllegalArgumentException("Você não tem permissão para ver adicionais deste serviço");
-        }
-
-        // Buscar o adicional e verificar se pertence ao serviço através do repositório
-        List<AdicionaisModel> adicionaisDoServico = adicionaisRepository.findByServicoId(servicoId);
-
-        return adicionaisRepository.findById(adicionalId)
-                .filter(adicional -> adicionaisDoServico.contains(adicional))
-                .map(this::converterParaDTO);
-    }
-
     public AdicionalResponseDTO atualizarAdicional(UUID adicionalId, CriarAdicionalDTO dto, UUID servicoId,
             UUID parceiroId) {
         // Verificar se o serviço existe e pertence ao parceiro

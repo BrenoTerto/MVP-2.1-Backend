@@ -46,15 +46,15 @@ public class ServicoModel {
     private double precoPequeno;
 
     private Double precoGrande;
-    
+
     @NotNull(message = "Indicação se aceita pet grande é obrigatória")
     private Boolean aceitaPetGrande = true;
-    
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parceiro_id", nullable = false)
     @NotNull(message = "Parceiro é obrigatório")
     private PartnerModel parceiro;
-    
+
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "servico_id")
     private List<AdicionaisModel> adicionais;

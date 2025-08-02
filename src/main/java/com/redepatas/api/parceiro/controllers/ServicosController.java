@@ -24,33 +24,33 @@ import com.redepatas.api.parceiro.dtos.ServicoDtos.AtualizarServicoDTO;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.CriarServicoDTO;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.ServicoResponseDTO;
 import com.redepatas.api.parceiro.models.PartnerModel;
-import com.redepatas.api.parceiro.models.TipoServico;
 import com.redepatas.api.parceiro.services.ServicoService;
 
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/parceiros")
+@RequestMapping("/parceiros/servicos")
 @Validated
 public class ServicosController {
-    
+
     @Autowired
     private ServicoService servicoService;
-    
-    @PostMapping("/servicos")
+
+    @PostMapping("/criar")
     public ResponseEntity<?> criarServico(@Valid @RequestBody CriarServicoDTO dto) {
         try {
             // Obter o parceiro autenticado
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication == null || !(authentication.getPrincipal() instanceof PartnerModel)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Acesso negado: usuário não autenticado como parceiro");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Acesso negado: usuário não autenticado como parceiro");
             }
-            
+
             PartnerModel parceiroLogado = (PartnerModel) authentication.getPrincipal();
-            
+
             // Definir o parceiroId do DTO como o ID do parceiro logado
             dto.setParceiroId(parceiroLogado.getIdPartner());
-            
+
             ServicoResponseDTO servico = servicoService.criarServico(dto);
             return ResponseEntity.status(HttpStatus.CREATED).body(servico);
         } catch (IllegalArgumentException e) {
@@ -60,18 +60,18 @@ public class ServicosController {
                     .body("Erro interno do servidor: " + e.getMessage());
         }
     }
-    
-    @GetMapping("/servicos")
+
+    @GetMapping("/getServico")
     public ResponseEntity<?> listarMeusServicos() {
         try {
-            // Obter o parceiro autenticado
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication == null || !(authentication.getPrincipal() instanceof PartnerModel)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Acesso negado: usuário não autenticado como parceiro");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Acesso negado: usuário não autenticado como parceiro");
             }
-            
+
             PartnerModel parceiroLogado = (PartnerModel) authentication.getPrincipal();
-            
+
             List<ServicoResponseDTO> servicos = servicoService.listarServicosPorParceiro(parceiroLogado.getIdPartner());
             return ResponseEntity.ok(servicos);
         } catch (Exception e) {
@@ -79,89 +79,22 @@ public class ServicosController {
                     .body("Erro interno do servidor: " + e.getMessage());
         }
     }
-    
-    @GetMapping("/servicos/{id}")
-    public ResponseEntity<?> buscarMeuServicoPorId(@PathVariable UUID id) {
+
+    @PutMapping("/atualizar/{id}")
+    public ResponseEntity<?> atualizarServicoParcial(@PathVariable UUID id,
+            @Valid @RequestBody AtualizarServicoDTO dto) {
         try {
             // Obter o parceiro autenticado
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication == null || !(authentication.getPrincipal() instanceof PartnerModel)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Acesso negado: usuário não autenticado como parceiro");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Acesso negado: usuário não autenticado como parceiro");
             }
-            
+
             PartnerModel parceiroLogado = (PartnerModel) authentication.getPrincipal();
-            
-            Optional<ServicoResponseDTO> servico = servicoService.buscarServicoPorIdEParceiro(id, parceiroLogado.getIdPartner());
-            if (servico.isPresent()) {
-                return ResponseEntity.ok(servico.get());
-            }
-            return ResponseEntity.notFound().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Erro interno do servidor: " + e.getMessage());
-        }
-    }
-    
-    @GetMapping("/servicos/tipo/{tipo}")
-    public ResponseEntity<?> listarMeusServicosPorTipo(@PathVariable String tipo) {
-        try {
-            // Obter o parceiro autenticado
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication == null || !(authentication.getPrincipal() instanceof PartnerModel)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Acesso negado: usuário não autenticado como parceiro");
-            }
-            
-            PartnerModel parceiroLogado = (PartnerModel) authentication.getPrincipal();
-            
-            // Validar tipo de serviço
-            TipoServico tipoServico = TipoServico.fromString(tipo);
-            
-            List<ServicoResponseDTO> servicos = servicoService.listarServicosPorParceiroETipo(parceiroLogado.getIdPartner(), tipoServico);
-            return ResponseEntity.ok(servicos);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Erro interno do servidor: " + e.getMessage());
-        }
-    }
-    
-    @GetMapping("/servicos/aceita-pet-grande/{aceitaPetGrande}")
-    public ResponseEntity<?> listarMeusServicosPorPetGrande(@PathVariable Boolean aceitaPetGrande) {
-        try {
-            // Obter o parceiro autenticado
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication == null || !(authentication.getPrincipal() instanceof PartnerModel)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Acesso negado: usuário não autenticado como parceiro");
-            }
-            
-            PartnerModel parceiroLogado = (PartnerModel) authentication.getPrincipal();
-            
-            List<ServicoResponseDTO> servicos = servicoService.listarServicosPorParceiroEPetGrande(parceiroLogado.getIdPartner(), aceitaPetGrande);
-            return ResponseEntity.ok(servicos);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Erro interno do servidor: " + e.getMessage());
-        }
-    }
-    
-    @PutMapping("/servicos/{id}")
-    public ResponseEntity<?> atualizarServico(@PathVariable UUID id, @Valid @RequestBody CriarServicoDTO dto) {
-        try {
-            // Obter o parceiro autenticado
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication == null || !(authentication.getPrincipal() instanceof PartnerModel)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Acesso negado: usuário não autenticado como parceiro");
-            }
-            
-            PartnerModel parceiroLogado = (PartnerModel) authentication.getPrincipal();
-            
-            // Garantir que o parceiroId do DTO seja o mesmo do parceiro logado
-            dto.setParceiroId(parceiroLogado.getIdPartner());
-            
-            ServicoResponseDTO servico = servicoService.atualizarServico(id, dto);
+
+            ServicoResponseDTO servico = servicoService.atualizarServicoParcialPorParceiro(id, dto,
+                    parceiroLogado.getIdPartner());
             return ResponseEntity.ok(servico);
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
@@ -170,39 +103,19 @@ public class ServicosController {
                     .body("Erro interno do servidor: " + e.getMessage());
         }
     }
-    
-    @PatchMapping("/servicos/{id}")
-    public ResponseEntity<?> atualizarServicoParcial(@PathVariable UUID id, @Valid @RequestBody AtualizarServicoDTO dto) {
-        try {
-            // Obter o parceiro autenticado
-            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-            if (authentication == null || !(authentication.getPrincipal() instanceof PartnerModel)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Acesso negado: usuário não autenticado como parceiro");
-            }
-            
-            PartnerModel parceiroLogado = (PartnerModel) authentication.getPrincipal();
-            
-            ServicoResponseDTO servico = servicoService.atualizarServicoParcialPorParceiro(id, dto, parceiroLogado.getIdPartner());
-            return ResponseEntity.ok(servico);
-        } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Erro interno do servidor: " + e.getMessage());
-        }
-    }
-    
-    @DeleteMapping("/servicos/{id}")
+
+    @DeleteMapping("/deletar/{id}")
     public ResponseEntity<?> deletarServico(@PathVariable UUID id) {
         try {
             // Obter o parceiro autenticado
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication == null || !(authentication.getPrincipal() instanceof PartnerModel)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Acesso negado: usuário não autenticado como parceiro");
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Acesso negado: usuário não autenticado como parceiro");
             }
-            
+
             PartnerModel parceiroLogado = (PartnerModel) authentication.getPrincipal();
-            
+
             servicoService.deletarServicoPorParceiro(id, parceiroLogado.getIdPartner());
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
@@ -212,10 +125,11 @@ public class ServicosController {
                     .body("Erro interno do servidor: " + e.getMessage());
         }
     }
-    
+
     @GetMapping("/tipos-permitidos")
     public ResponseEntity<List<String>> listarTiposPermitidos() {
         List<String> tipos = servicoService.listarTiposPermitidos();
         return ResponseEntity.ok(tipos);
     }
+
 }
