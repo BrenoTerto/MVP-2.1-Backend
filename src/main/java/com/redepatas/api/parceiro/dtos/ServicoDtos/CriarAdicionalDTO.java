@@ -1,11 +1,7 @@
 package com.redepatas.api.parceiro.dtos.ServicoDtos;
 
-import java.util.List;
-import java.util.UUID;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -13,17 +9,12 @@ import lombok.Data;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = false)
-public class CriarServicoDTO {
+public class CriarAdicionalDTO {
     
-    private UUID parceiroId;
-    
-    @NotBlank(message = "Nome do serviço é obrigatório")
+    @NotBlank(message = "Nome do adicional é obrigatório")
     private String nome;
     
     private String descricao;
-    
-    @NotBlank(message = "Tipo do serviço é obrigatório")
-    private String tipo; // Será validado se é BANHO, TOSA ou CONSULTA
     
     @NotNull(message = "Preço pequeno é obrigatório")
     @Positive(message = "Preço pequeno deve ser maior que zero")
@@ -32,7 +23,4 @@ public class CriarServicoDTO {
     private Double precoGrande;
     
     private Boolean aceitaPetGrande = true;
-    
-    @Valid
-    private List<CriarAdicionalDTO> adicionais;
 }

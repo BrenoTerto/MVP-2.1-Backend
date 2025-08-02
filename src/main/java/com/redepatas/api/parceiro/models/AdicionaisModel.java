@@ -2,13 +2,13 @@ package com.redepatas.api.parceiro.models;
 
 import java.util.UUID;
 
-import jakarta.annotation.Generated;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,9 +23,17 @@ public class AdicionaisModel {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
+    @NotNull(message = "Nome do adicional é obrigatório")
     private String nome;
 
-    @NotNull(message = "O preço não pode ser nulo")
+    private String descricao;
+
+    @NotNull(message = "O preço pequeno não pode ser nulo")
+    @Positive(message = "Preço pequeno deve ser maior que zero")
     private double precoPequeno;
-    private double precoGrande;
+    
+    private Double precoGrande;
+    
+    @NotNull(message = "Indicação se aceita pet grande é obrigatória")
+    private Boolean aceitaPetGrande = true;
 }

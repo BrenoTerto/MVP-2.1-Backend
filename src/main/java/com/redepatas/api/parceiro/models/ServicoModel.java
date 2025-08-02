@@ -7,10 +7,12 @@ import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.EnumType;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
@@ -33,6 +35,8 @@ public class ServicoModel {
     @NotNull(message = "Nome do serviço é obrigatório")
     private String nome;
 
+    private String descricao;
+
     @Enumerated(EnumType.STRING)
     @NotNull(message = "Tipo do serviço é obrigatório")
     private TipoServico tipo;
@@ -41,8 +45,15 @@ public class ServicoModel {
     @Positive(message = "Preço deve ser maior que zero")
     private double precoPequeno;
 
-    @Positive(message = "Preço deve ser maior que zero")
-    private double precoGrande;
+    private Double precoGrande;
+    
+    @NotNull(message = "Indicação se aceita pet grande é obrigatória")
+    private Boolean aceitaPetGrande = true;
+    
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parceiro_id", nullable = false)
+    @NotNull(message = "Parceiro é obrigatório")
+    private PartnerModel parceiro;
     
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "servico_id")
