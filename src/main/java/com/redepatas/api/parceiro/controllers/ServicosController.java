@@ -51,8 +51,8 @@ public class ServicosController {
             // Definir o parceiroId do DTO como o ID do parceiro logado
             dto.setParceiroId(parceiroLogado.getIdPartner());
 
-            ServicoResponseDTO servico = servicoService.criarServico(dto);
-            return ResponseEntity.status(HttpStatus.CREATED).body(servico);
+            servicoService.criarServico(dto);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Serviço criado com sucesso");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
         } catch (Exception e) {
@@ -80,6 +80,28 @@ public class ServicosController {
         }
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<?> buscarServicoPorId(@PathVariable UUID id) {
+        try {
+            // Obter o parceiro autenticado
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !(authentication.getPrincipal() instanceof PartnerModel)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Acesso negado: usuário não autenticado como parceiro");
+            }
+
+            PartnerModel parceiroLogado = (PartnerModel) authentication.getPrincipal();
+
+            ServicoResponseDTO servico = servicoService.buscarServicoPorId(id, parceiroLogado.getIdPartner());
+            return ResponseEntity.ok(servico);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro interno do servidor: " + e.getMessage());
+        }
+    }
+
     @PutMapping("/atualizar/{id}")
     public ResponseEntity<?> atualizarServicoParcial(@PathVariable UUID id,
             @Valid @RequestBody AtualizarServicoDTO dto) {
@@ -93,9 +115,9 @@ public class ServicosController {
 
             PartnerModel parceiroLogado = (PartnerModel) authentication.getPrincipal();
 
-            ServicoResponseDTO servico = servicoService.atualizarServicoParcialPorParceiro(id, dto,
+            servicoService.atualizarServicoParcialPorParceiro(id, dto,
                     parceiroLogado.getIdPartner());
-            return ResponseEntity.ok(servico);
+            return ResponseEntity.ok("Serviço atualizado com sucesso");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
         } catch (Exception e) {

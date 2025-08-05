@@ -97,6 +97,20 @@ public class ServicoService {
                 .collect(Collectors.toList());
     }
 
+    public ServicoResponseDTO buscarServicoPorId(UUID servicoId, UUID parceiroId) {
+        Optional<ServicoModel> servicoOpt = servicoRepository.findById(servicoId);
+        if (servicoOpt.isEmpty()) {
+            throw new IllegalArgumentException("Serviço não encontrado com ID: " + servicoId);
+        }
+
+        ServicoModel servico = servicoOpt.get();
+        if (!servico.getParceiro().getIdPartner().equals(parceiroId)) {
+            throw new IllegalArgumentException("Você não tem permissão para visualizar este serviço");
+        }
+
+        return converterParaDTO(servico);
+    }
+
     public void deletarServicoPorParceiro(UUID servicoId, UUID parceiroId) {
         Optional<ServicoModel> servicoOpt = servicoRepository.findById(servicoId);
         if (servicoOpt.isEmpty()) {

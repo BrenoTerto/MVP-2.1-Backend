@@ -48,9 +48,9 @@ public class AdicionaisController {
 
             PartnerModel parceiroLogado = (PartnerModel) authentication.getPrincipal();
 
-            AdicionalResponseDTO adicional = adicionaisService.adicionarAdicional(servicoId, dto,
+            adicionaisService.adicionarAdicional(servicoId, dto,
                     parceiroLogado.getIdPartner());
-            return ResponseEntity.status(HttpStatus.CREATED).body(adicional);
+            return ResponseEntity.status(HttpStatus.CREATED).body("Adicional criado com sucesso");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
         } catch (Exception e) {
@@ -97,9 +97,9 @@ public class AdicionaisController {
 
             PartnerModel parceiroLogado = (PartnerModel) authentication.getPrincipal();
 
-            AdicionalResponseDTO adicional = adicionaisService.atualizarAdicional(id, dto, servicoId,
+            adicionaisService.atualizarAdicional(id, dto, servicoId,
                     parceiroLogado.getIdPartner());
-            return ResponseEntity.ok(adicional);
+            return ResponseEntity.ok("Adicional atualizado com sucesso");
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
         } catch (Exception e) {
