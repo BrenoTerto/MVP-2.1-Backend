@@ -14,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -31,9 +32,6 @@ public class ServicoModel {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
-
-    @NotNull(message = "Nome do serviço é obrigatório")
-    private String nome;
 
     private String descricao;
 
@@ -59,4 +57,7 @@ public class ServicoModel {
     @JoinColumn(name = "servico_id")
     private List<AdicionaisModel> adicionais;
 
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "agenda_id")
+    private AgendaModel agenda;
 }

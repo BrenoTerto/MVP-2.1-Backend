@@ -14,25 +14,26 @@ import lombok.Data;
 @Data
 @JsonIgnoreProperties(ignoreUnknown = false)
 public class CriarServicoDTO {
-    
+
     private UUID parceiroId;
-    
-    @NotBlank(message = "Nome do serviço é obrigatório")
-    private String nome;
-    
+
     private String descricao;
-    
+
     @NotBlank(message = "Tipo do serviço é obrigatório")
-    private String tipo; // Será validado se é BANHO, TOSA ou CONSULTA
-    
+    private String tipo;
+
     @NotNull(message = "Preço pequeno é obrigatório")
     @Positive(message = "Preço pequeno deve ser maior que zero")
     private Double precoPequeno;
-    
+
     private Double precoGrande;
-    
+
     private Boolean aceitaPetGrande = true;
-    
+
     @Valid
     private List<CriarAdicionalDTO> adicionais;
+
+    @Valid
+    @NotNull(message = "A agenda do serviço é obrigatória")
+    private CriarAgendaDTO agenda;
 }
