@@ -1,4 +1,3 @@
-// Novo arquivo: c:\Users\IanFK\Documents\Github\MVP-2.1-Backend\src\main\java\com\redepatas\api\parceiro\dtos\ServicoDtos\CriarAgendaDiaDTO.java
 package com.redepatas.api.parceiro.dtos.ServicoDtos;
 
 import jakarta.validation.Valid;

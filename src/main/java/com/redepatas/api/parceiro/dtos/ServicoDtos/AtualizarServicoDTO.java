@@ -24,4 +24,7 @@ public class AtualizarServicoDTO {
     
     @Valid
     private List<CriarAdicionalDTO> adicionais;
+    
+    @Valid
+    private CriarAgendaDTO agenda;
 }

@@ -57,7 +57,6 @@ public class ServicoModel {
     @JoinColumn(name = "servico_id")
     private List<AdicionaisModel> adicionais;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "agenda_id")
+    @OneToOne(mappedBy = "servico", cascade = CascadeType.ALL, orphanRemoval = true)
     private AgendaModel agenda;
 }
