@@ -12,12 +12,19 @@ import org.springframework.stereotype.Service;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.AdicionalResponseDTO;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.AtualizarServicoDTO;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.CriarAdicionalDTO;
+import com.redepatas.api.parceiro.dtos.ServicoDtos.CriarAgendaDTO;
+import com.redepatas.api.parceiro.dtos.ServicoDtos.CriarAgendaDiaDTO;
+import com.redepatas.api.parceiro.dtos.ServicoDtos.CriarAgendaHorarioDTO;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.CriarServicoDTO;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.ServicoResponseDTO;
 import com.redepatas.api.parceiro.models.AdicionaisModel;
+import com.redepatas.api.parceiro.models.AgendaDiaModel;
+import com.redepatas.api.parceiro.models.AgendaHorarioModel;
+import com.redepatas.api.parceiro.models.AgendaModel;
 import com.redepatas.api.parceiro.models.PartnerModel;
 import com.redepatas.api.parceiro.models.ServicoModel;
 import com.redepatas.api.parceiro.models.TipoServico;
+import com.redepatas.api.parceiro.models.Enum.DiaSemana;
 import com.redepatas.api.parceiro.repositories.PartnerRepository;
 import com.redepatas.api.parceiro.repositories.ServicoRepository;
 
@@ -31,21 +38,17 @@ public class ServicoService {
     private PartnerRepository partnerRepository;
 
     public ServicoResponseDTO criarServico(CriarServicoDTO dto) {
-        // Buscar o parceiro
         Optional<PartnerModel> parceiroOpt = partnerRepository.findById(dto.getParceiroId());
         if (parceiroOpt.isEmpty()) {
             throw new IllegalArgumentException("Parceiro não encontrado com ID: " + dto.getParceiroId());
         }
         PartnerModel parceiro = parceiroOpt.get();
 
-        // Validar se o tipo é permitido
         if (!TipoServico.isValid(dto.getTipo())) {
             throw new IllegalArgumentException(
                     "Tipo de serviço inválido: " + dto.getTipo() +
                             ". Tipos permitidos: BANHO, TOSA, CONSULTA");
         }
-
-        // Verificar se já existe um serviço com mesmo nome e tipo para este parceiro
         if (servicoRepository.existsByTipoAndParceiro(TipoServico.fromString(dto.getTipo()),
                 parceiro)) {
             throw new IllegalArgumentException("Já existe um serviço com este nome e tipo para este parceiro");
@@ -57,20 +60,15 @@ public class ServicoService {
         servico.setTipo(TipoServico.fromString(dto.getTipo()));
         servico.setPrecoPequeno(dto.getPrecoPequeno());
 
-        // Lógica para pet grande
         Boolean aceitaPetGrande = dto.getAceitaPetGrande() != null ? dto.getAceitaPetGrande() : true;
         servico.setAceitaPetGrande(aceitaPetGrande);
 
         if (aceitaPetGrande) {
-            // Se aceita pet grande, define como 0.0 inicialmente (usuário pode atualizar
-            // depois)
             servico.setPrecoGrande(dto.getPrecoGrande() != null ? dto.getPrecoGrande() : 0.0);
         } else {
-            // Se não aceita pet grande, define como null
             servico.setPrecoGrande(null);
         }
 
-        // Processar adicionais se fornecidos
         if (dto.getAdicionais() != null && !dto.getAdicionais().isEmpty()) {
             List<AdicionaisModel> adicionais = dto.getAdicionais().stream()
                     .map(adicionalDTO -> {
@@ -84,6 +82,12 @@ public class ServicoService {
             servico.setAdicionais(adicionais);
         } else {
             servico.setAdicionais(new ArrayList<>());
+        }
+
+        if (dto.getAgenda() != null) {
+            AgendaModel agenda = converterAgendaDTO(dto.getAgenda());
+            servico.setAgenda(agenda);
+            agenda.setServico(servico);
         }
 
         ServicoModel servicoSalvo = servicoRepository.save(servico);
@@ -225,7 +229,35 @@ public class ServicoService {
         return dto;
     }
 
+    private AgendaModel converterAgendaDTO(CriarAgendaDTO dto) {
+        AgendaModel agenda = new AgendaModel();
+        List<AgendaDiaModel> dias = new ArrayList<>();
+        if (dto.getDias() != null) {
+            for (CriarAgendaDiaDTO diaDTO : dto.getDias()) {
+                AgendaDiaModel dia = new AgendaDiaModel();
+                dia.setDiaSemana(DiaSemana.valueOf(diaDTO.getDiaSemana()));
+                dia.setAgenda(agenda);
+
+                List<AgendaHorarioModel> horarios = new ArrayList<>();
+                if (diaDTO.getHorarios() != null) {
+                    for (CriarAgendaHorarioDTO horarioDTO : diaDTO.getHorarios()) {
+                        AgendaHorarioModel horario = new AgendaHorarioModel();
+                        horario.setHorarioInicio(horarioDTO.getHorarioInicio());
+                        horario.setHorarioFim(horarioDTO.getHorarioFim());
+                        horario.setDia(dia);
+                        horarios.add(horario);
+                    }
+                }
+                dia.setHorarios(horarios);
+                dias.add(dia);
+            }
+        }
+        agenda.setDias(dias);
+        return agenda;
+    }
+
     public List<String> listarTiposPermitidos() {
         return List.of("BANHO", "TOSA", "CONSULTA");
     }
+
 }
