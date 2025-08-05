@@ -13,10 +13,10 @@ import com.redepatas.api.parceiro.models.TipoServico;
 @Repository
 public interface ServicoRepository extends JpaRepository<ServicoModel, UUID> {
 
-    boolean existsByNomeAndTipo(String nome, TipoServico tipo);
+    boolean existsByTipo(TipoServico tipo);
 
     List<ServicoModel> findByParceiroIdPartner(UUID parceiroId);
 
-    boolean existsByNomeAndTipoAndParceiro(String nome, TipoServico tipo, PartnerModel parceiro);
+    boolean existsByTipoAndParceiro(TipoServico tipo, PartnerModel parceiro);
 
 }

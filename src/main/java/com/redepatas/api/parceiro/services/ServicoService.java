@@ -46,14 +46,13 @@ public class ServicoService {
         }
 
         // Verificar se já existe um serviço com mesmo nome e tipo para este parceiro
-        if (servicoRepository.existsByNomeAndTipoAndParceiro(dto.getNome(), TipoServico.fromString(dto.getTipo()),
+        if (servicoRepository.existsByTipoAndParceiro(TipoServico.fromString(dto.getTipo()),
                 parceiro)) {
             throw new IllegalArgumentException("Já existe um serviço com este nome e tipo para este parceiro");
         }
 
         ServicoModel servico = new ServicoModel();
-        servico.setParceiro(parceiro); // Associar ao parceiro
-        servico.setNome(dto.getNome());
+        servico.setParceiro(parceiro);
         servico.setDescricao(dto.getDescricao());
         servico.setTipo(TipoServico.fromString(dto.getTipo()));
         servico.setPrecoPequeno(dto.getPrecoPequeno());
@@ -76,6 +75,9 @@ public class ServicoService {
             List<AdicionaisModel> adicionais = dto.getAdicionais().stream()
                     .map(adicionalDTO -> {
                         AdicionaisModel adicional = converterAdicionalDTO(adicionalDTO);
+                        if (adicional.getPrecoGrande() == null && aceitaPetGrande) {
+                            throw new IllegalArgumentException("Preço grande não pode ser nulo se aceita pet grande");
+                        }
                         return adicional;
                     })
                     .collect(Collectors.toList());
@@ -124,10 +126,6 @@ public class ServicoService {
             throw new IllegalArgumentException("Você não tem permissão para atualizar este serviço");
         }
 
-        // Atualizar apenas os campos fornecidos
-        if (dto.getNome() != null && !dto.getNome().trim().isEmpty()) {
-            servico.setNome(dto.getNome());
-        }
         if (dto.getDescricao() != null) {
             servico.setDescricao(dto.getDescricao());
         }
@@ -179,7 +177,6 @@ public class ServicoService {
     private ServicoResponseDTO converterParaDTO(ServicoModel servico) {
         ServicoResponseDTO dto = new ServicoResponseDTO();
         dto.setId(servico.getId());
-        dto.setNome(servico.getNome());
         dto.setDescricao(servico.getDescricao());
         dto.setTipo(servico.getTipo());
         dto.setPrecoPequeno(servico.getPrecoPequeno());
