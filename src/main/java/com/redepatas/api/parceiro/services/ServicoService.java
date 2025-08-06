@@ -1,14 +1,34 @@
 package com.redepatas.api.parceiro.services;
 
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.integration.IntegrationProperties.RSocket.Client;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
+import com.redepatas.api.cliente.models.ClientModel;
+import com.redepatas.api.cliente.models.Endereco;
+import com.redepatas.api.cliente.repositories.ClientRepository;
+import com.redepatas.api.parceiro.dtos.PartnerDtos.DistanceDurationDto;
+import com.redepatas.api.parceiro.dtos.PartnerDtos.EnderecoParteDto;
+import com.redepatas.api.parceiro.dtos.PartnerDtos.ParceiroBuscaProjecao;
+import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerDto;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.AdicionalResponseDTO;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.AtualizarServicoDTO;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.CriarAdicionalDTO;
@@ -36,6 +56,86 @@ public class ServicoService {
 
     @Autowired
     private PartnerRepository partnerRepository;
+    @Autowired
+    private ClientRepository clientRepository;
+
+    @Value("${api.key.google.maps}")
+    private String API_KEY;
+
+    public List<PartnerDto> buscarParceirosDisponiveis(String cidade, String rua, String bairro, String loginCliente,
+            String diaSemana, String tipoServico, String tamanhoPet) {
+
+        var user = clientRepository.findByLogin(loginCliente);
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuário não encontrado!");
+        }
+        var client = (ClientModel) user;
+        String enderecoOrigem = null;
+        boolean cidadeFornecida = cidade != null && !cidade.isBlank();
+        boolean ruaFornecida = rua != null && !rua.isBlank();
+        boolean bairroFornecido = bairro != null && !bairro.isBlank();
+
+        if (cidadeFornecida && ruaFornecida && bairroFornecido) {
+            System.out.println("Usando endereço completo fornecido na requisição.");
+            enderecoOrigem = rua + ", " + bairro + ", " + cidade;
+        } else if (!cidadeFornecida && !ruaFornecida && !bairroFornecido) {
+            System.out.println("Nenhum endereço na requisição. Buscando endereço selecionado no perfil do cliente...");
+            enderecoOrigem = client.getEnderecos().stream()
+                    .filter(e -> Boolean.TRUE.equals(e.getSelecionado()))
+                    .findFirst()
+                    .map(e -> e.getRua() + ", " + e.getBairro() + ", " + e.getCidade())
+                    .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Nenhum endereço foi fornecido na busca e não há um endereço selecionado no seu perfil."));
+
+            System.out.println("Endereço do perfil encontrado: " + enderecoOrigem);
+        } else {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Endereço incompleto! Para buscar utilizar a localização, por favor, forneça todos os campos: cidade, rua e bairro.");
+        }
+
+        List<ParceiroBuscaProjecao> resultadosDoBanco = partnerRepository.findParceirosDisponiveis(cidade, diaSemana,
+                tipoServico, tamanhoPet);
+
+        if (resultadosDoBanco.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<String> enderecosDestino = resultadosDoBanco.stream()
+                .map(p -> p.getRua() + ", " + p.getBairro() + ", " + p.getCidade())
+                .collect(Collectors.toList());
+
+        List<DistanceDurationDto> distancias = consultarDistancias(enderecoOrigem, enderecosDestino);
+
+        if (distancias.size() != resultadosDoBanco.size()) {
+            System.err.println(
+                    "AVISO: A contagem de distâncias retornada pela API não corresponde à contagem de parceiros.");
+        }
+
+        List<PartnerDto> resultadoFinal = new ArrayList<>();
+        for (int i = 0; i < resultadosDoBanco.size(); i++) {
+            ParceiroBuscaProjecao projecao = resultadosDoBanco.get(i);
+
+            DistanceDurationDto distanciaInfo = (i < distancias.size()) ? distancias.get(i) : null;
+            String distancia = (distanciaInfo != null) ? distanciaInfo.distancia() : "N/D";
+            String tempo = (distanciaInfo != null) ? distanciaInfo.tempo() : "N/D";
+
+            EnderecoParteDto enderecoDto = new EnderecoParteDto(projecao.getRua(), projecao.getBairro());
+            resultadoFinal.add(new PartnerDto(
+                    projecao.getId_partner(),
+                    projecao.getId_servico(),
+                    projecao.getImagem(),
+                    projecao.getNome_do_parceiro(),
+                    projecao.getServico_oferecido(),
+                    projecao.getPreco_pequeno().longValue(),
+                    projecao.getPreco_grande() != null ? projecao.getPreco_grande().longValue() : 0L,
+                    projecao.getAvaliacao() != null ? projecao.getAvaliacao().longValue() : 0L,
+                    enderecoDto,
+                    distancia,
+                    tempo));
+        }
+
+        return resultadoFinal;
+    }
 
     public ServicoResponseDTO criarServico(CriarServicoDTO dto) {
         Optional<PartnerModel> parceiroOpt = partnerRepository.findById(dto.getParceiroId());
@@ -95,7 +195,6 @@ public class ServicoService {
         return converterParaDTO(servicoSalvo);
     }
 
-    // Método específico para listar serviços por parceiro
     public List<ServicoResponseDTO> listarServicosPorParceiro(UUID parceiroId) {
         return servicoRepository.findByParceiroIdPartner(parceiroId)
                 .stream()
@@ -254,6 +353,60 @@ public class ServicoService {
         }
         agenda.setDias(dias);
         return agenda;
+    }
+
+    private List<DistanceDurationDto> consultarDistancias(String origem, List<String> destinos) {
+        try {
+            String destinosParam = destinos.stream()
+                    .map(dest -> URLEncoder.encode(dest, StandardCharsets.UTF_8))
+                    .collect(Collectors.joining("|"));
+
+            String origemParam = URLEncoder.encode(origem, StandardCharsets.UTF_8);
+
+            String urlStr = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=" +
+                    origemParam + "&destinations=" + destinosParam + "&departure_time=now" + "&key="
+                    + API_KEY;
+            URL url = new URL(urlStr);
+            HttpURLConnection con = (HttpURLConnection) url.openConnection();
+            con.setRequestMethod("GET");
+
+            BufferedReader in = new BufferedReader(new InputStreamReader(con.getInputStream()));
+            String inputLine;
+            StringBuilder content = new StringBuilder();
+            while ((inputLine = in.readLine()) != null) {
+                content.append(inputLine);
+            }
+
+            in.close();
+            con.disconnect();
+
+            JSONObject responseJson = new JSONObject(content.toString());
+
+            JSONArray rows = responseJson.optJSONArray("rows");
+
+            JSONArray elements = rows.getJSONObject(0).optJSONArray("elements");
+
+            List<DistanceDurationDto> result = new ArrayList<>();
+            for (int i = 0; i < elements.length(); i++) {
+                JSONObject element = elements.getJSONObject(i);
+
+                if (element.has("distance") && element.has("duration")) {
+                    String distance = element.getJSONObject("distance").getString("text");
+                    String duration = element.getJSONObject("duration").getString("text");
+                    result.add(new DistanceDurationDto(distance, duration));
+                } else {
+                    throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                            "Elemento sem distância/duração válido: "
+                                    + element.toString(2));
+                }
+            }
+
+            return result;
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            return Collections.emptyList();
+        }
     }
 
     public List<String> listarTiposPermitidos() {

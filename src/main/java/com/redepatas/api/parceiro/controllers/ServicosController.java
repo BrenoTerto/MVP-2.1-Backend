@@ -8,7 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,6 +22,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.redepatas.api.parceiro.dtos.PartnerDtos.BuscarParceirosDisponiveisDTO;
+import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerDto;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.AtualizarServicoDTO;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.CriarServicoDTO;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.ServicoResponseDTO;
@@ -35,6 +39,21 @@ public class ServicosController {
 
     @Autowired
     private ServicoService servicoService;
+
+    @PostMapping("/disponiveis")
+    public List<PartnerDto> buscarParceirosDisponiveis(
+            @RequestBody @Valid BuscarParceirosDisponiveisDTO dto,
+            @AuthenticationPrincipal UserDetails userDetails) {
+        List<PartnerDto> parceiros = servicoService.buscarParceirosDisponiveis(
+                dto.cidade(),
+                dto.rua(),
+                dto.bairro(),
+                userDetails.getUsername(),
+                dto.diaSemana(),
+                dto.tipoServico(),
+                dto.tamanhoPet());
+        return parceiros;
+    }
 
     @PostMapping("/criar")
     public ResponseEntity<?> criarServico(@Valid @RequestBody CriarServicoDTO dto) {

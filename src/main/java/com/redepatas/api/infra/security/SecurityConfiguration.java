@@ -69,7 +69,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.POST, "/partners/getServices")
                         .hasRole("USER")
                         .requestMatchers("/partners/**").permitAll()
-
+                        .requestMatchers("/parceiros/**").permitAll()
                         .requestMatchers("/files/**").permitAll() // AUTENTICAR EM BREVE
                         .requestMatchers("/webhook/**").permitAll() // ADICIONAR
 

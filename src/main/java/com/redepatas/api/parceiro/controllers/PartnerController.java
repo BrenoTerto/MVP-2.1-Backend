@@ -76,11 +76,6 @@ public class PartnerController {
         }
     }
 
-    @PostMapping("/getAll") // VAI SER APAGADO FUTURAMENTE
-    public List<PartnerDto> getAllPartner() {
-        return partnerService.getAllPartners();
-    }
-
     // @PostMapping("/getServices")
     // public ResponseEntity<PartenerServicesDto> getPartnerService(
     // @RequestBody @Valid GetPartnerServiceDto dto) {
