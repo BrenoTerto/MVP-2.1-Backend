@@ -1,4 +1,3 @@
-// Novo arquivo: src/main/java/com/redepatas/api/parceiro/models/AgendaHorarioModel.java
 package com.redepatas.api.parceiro.models;
 
 import jakarta.persistence.*;

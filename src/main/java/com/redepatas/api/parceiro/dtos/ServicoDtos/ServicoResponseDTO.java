@@ -18,6 +18,7 @@ public class ServicoResponseDTO {
     private Double precoGrande;
     private Boolean aceitaPetGrande;
     private List<AdicionalResponseDTO> adicionais;
+    private AgendaResponseDTO agenda;
     
     // Informações do parceiro
     private UUID parceiroId;

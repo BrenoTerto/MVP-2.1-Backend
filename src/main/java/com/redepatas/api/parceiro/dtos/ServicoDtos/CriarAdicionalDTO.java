@@ -21,6 +21,4 @@ public class CriarAdicionalDTO {
     private Double precoPequeno;
     
     private Double precoGrande;
-    
-    private Boolean aceitaPetGrande = true;
 }

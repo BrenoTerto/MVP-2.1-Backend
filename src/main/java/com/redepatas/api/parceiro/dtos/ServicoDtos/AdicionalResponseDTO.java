@@ -12,5 +12,4 @@ public class AdicionalResponseDTO {
     private String descricao;
     private double precoPequeno;
     private Double precoGrande;
-    private Boolean aceitaPetGrande;
 }

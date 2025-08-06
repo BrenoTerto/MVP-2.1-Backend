@@ -30,6 +30,9 @@ import com.redepatas.api.parceiro.dtos.PartnerDtos.EnderecoParteDto;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.ParceiroBuscaProjecao;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerDto;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.AdicionalResponseDTO;
+import com.redepatas.api.parceiro.dtos.ServicoDtos.AgendaResponseDTO;
+import com.redepatas.api.parceiro.dtos.ServicoDtos.AgendaDiaResponseDTO;
+import com.redepatas.api.parceiro.dtos.ServicoDtos.AgendaHorarioResponseDTO;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.AtualizarServicoDTO;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.CriarAdicionalDTO;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.CriarAgendaDTO;
@@ -202,6 +205,20 @@ public class ServicoService {
                 .collect(Collectors.toList());
     }
 
+    public ServicoResponseDTO buscarServicoPorId(UUID servicoId, UUID parceiroId) {
+        Optional<ServicoModel> servicoOpt = servicoRepository.findById(servicoId);
+        if (servicoOpt.isEmpty()) {
+            throw new IllegalArgumentException("Serviço não encontrado com ID: " + servicoId);
+        }
+
+        ServicoModel servico = servicoOpt.get();
+        if (!servico.getParceiro().getIdPartner().equals(parceiroId)) {
+            throw new IllegalArgumentException("Você não tem permissão para visualizar este serviço");
+        }
+
+        return converterParaDTO(servico);
+    }
+
     public void deletarServicoPorParceiro(UUID servicoId, UUID parceiroId) {
         Optional<ServicoModel> servicoOpt = servicoRepository.findById(servicoId);
         if (servicoOpt.isEmpty()) {
@@ -272,6 +289,20 @@ public class ServicoService {
             servico.setAdicionais(novosAdicionais);
         }
 
+        // Processar agenda se fornecida
+        if (dto.getAgenda() != null) {
+            // Se já existe uma agenda, remover a referência e salvar
+            if (servico.getAgenda() != null) {
+                servico.setAgenda(null);
+                servicoRepository.saveAndFlush(servico);
+            }
+            
+            // Criar nova agenda
+            AgendaModel novaAgenda = converterAgendaDTO(dto.getAgenda());
+            servico.setAgenda(novaAgenda);
+            novaAgenda.setServico(servico);
+        }
+
         ServicoModel servicoAtualizado = servicoRepository.save(servico);
 
         return converterParaDTO(servicoAtualizado);
@@ -300,6 +331,12 @@ public class ServicoService {
             dto.setAdicionais(adicionaisDTO);
         } else {
             dto.setAdicionais(new ArrayList<>());
+        }
+
+        // Converter agenda
+        if (servico.getAgenda() != null) {
+            AgendaResponseDTO agendaDTO = converterAgendaParaDTO(servico.getAgenda());
+            dto.setAgenda(agendaDTO);
         }
 
         return dto;
@@ -411,6 +448,47 @@ public class ServicoService {
 
     public List<String> listarTiposPermitidos() {
         return List.of("BANHO", "TOSA", "CONSULTA");
+    }
+
+    private AgendaResponseDTO converterAgendaParaDTO(AgendaModel agenda) {
+        AgendaResponseDTO dto = new AgendaResponseDTO();
+        dto.setId(agenda.getId());
+        
+        if (agenda.getDias() != null) {
+            List<AgendaDiaResponseDTO> diasDTO = agenda.getDias().stream()
+                    .map(this::converterAgendaDiaParaDTO)
+                    .collect(Collectors.toList());
+            dto.setDias(diasDTO);
+        } else {
+            dto.setDias(new ArrayList<>());
+        }
+        
+        return dto;
+    }
+
+    private AgendaDiaResponseDTO converterAgendaDiaParaDTO(AgendaDiaModel dia) {
+        AgendaDiaResponseDTO dto = new AgendaDiaResponseDTO();
+        dto.setId(dia.getId());
+        dto.setDiaSemana(dia.getDiaSemana().name());
+        
+        if (dia.getHorarios() != null) {
+            List<AgendaHorarioResponseDTO> horariosDTO = dia.getHorarios().stream()
+                    .map(this::converterAgendaHorarioParaDTO)
+                    .collect(Collectors.toList());
+            dto.setHorarios(horariosDTO);
+        } else {
+            dto.setHorarios(new ArrayList<>());
+        }
+        
+        return dto;
+    }
+
+    private AgendaHorarioResponseDTO converterAgendaHorarioParaDTO(AgendaHorarioModel horario) {
+        AgendaHorarioResponseDTO dto = new AgendaHorarioResponseDTO();
+        dto.setId(horario.getId());
+        dto.setHorarioInicio(horario.getHorarioInicio());
+        dto.setHorarioFim(horario.getHorarioFim());
+        return dto;
     }
 
 }
