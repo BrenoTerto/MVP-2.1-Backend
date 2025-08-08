@@ -79,18 +79,14 @@ public class ServicoService {
         boolean bairroFornecido = bairro != null && !bairro.isBlank();
 
         if (cidadeFornecida && ruaFornecida && bairroFornecido) {
-            System.out.println("Usando endereço completo fornecido na requisição.");
             enderecoOrigem = rua + ", " + bairro + ", " + cidade;
         } else if (!cidadeFornecida && !ruaFornecida && !bairroFornecido) {
-            System.out.println("Nenhum endereço na requisição. Buscando endereço selecionado no perfil do cliente...");
             enderecoOrigem = client.getEnderecos().stream()
                     .filter(e -> Boolean.TRUE.equals(e.getSelecionado()))
                     .findFirst()
                     .map(e -> e.getRua() + ", " + e.getBairro() + ", " + e.getCidade())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
                             "Nenhum endereço foi fornecido na busca e não há um endereço selecionado no seu perfil."));
-
-            System.out.println("Endereço do perfil encontrado: " + enderecoOrigem);
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Endereço incompleto! Para buscar utilizar a localização, por favor, forneça todos os campos: cidade, rua e bairro.");
@@ -296,7 +292,7 @@ public class ServicoService {
                 servico.setAgenda(null);
                 servicoRepository.saveAndFlush(servico);
             }
-            
+
             // Criar nova agenda
             AgendaModel novaAgenda = converterAgendaDTO(dto.getAgenda());
             servico.setAgenda(novaAgenda);
@@ -453,7 +449,7 @@ public class ServicoService {
     private AgendaResponseDTO converterAgendaParaDTO(AgendaModel agenda) {
         AgendaResponseDTO dto = new AgendaResponseDTO();
         dto.setId(agenda.getId());
-        
+
         if (agenda.getDias() != null) {
             List<AgendaDiaResponseDTO> diasDTO = agenda.getDias().stream()
                     .map(this::converterAgendaDiaParaDTO)
@@ -462,7 +458,7 @@ public class ServicoService {
         } else {
             dto.setDias(new ArrayList<>());
         }
-        
+
         return dto;
     }
 
@@ -470,7 +466,7 @@ public class ServicoService {
         AgendaDiaResponseDTO dto = new AgendaDiaResponseDTO();
         dto.setId(dia.getId());
         dto.setDiaSemana(dia.getDiaSemana().name());
-        
+
         if (dia.getHorarios() != null) {
             List<AgendaHorarioResponseDTO> horariosDTO = dia.getHorarios().stream()
                     .map(this::converterAgendaHorarioParaDTO)
@@ -479,7 +475,7 @@ public class ServicoService {
         } else {
             dto.setHorarios(new ArrayList<>());
         }
-        
+
         return dto;
     }
 

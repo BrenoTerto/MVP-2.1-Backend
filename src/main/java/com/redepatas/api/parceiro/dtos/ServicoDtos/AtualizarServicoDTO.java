@@ -11,20 +11,20 @@ import lombok.Data;
 @Data
 @JsonIgnoreProperties(ignoreUnknown = false)
 public class AtualizarServicoDTO {
-    
+
     private String nome;
     private String descricao;
-    
+
     @Positive(message = "Preço pequeno deve ser maior que zero")
     private Double precoPequeno;
-    
+
     private Double precoGrande;
-    
+
     private Boolean aceitaPetGrande;
-    
+
     @Valid
     private List<CriarAdicionalDTO> adicionais;
-    
+
     @Valid
     private CriarAgendaDTO agenda;
 }
