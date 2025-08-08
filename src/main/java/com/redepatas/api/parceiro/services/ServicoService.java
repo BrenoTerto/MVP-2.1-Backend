@@ -17,13 +17,11 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.integration.IntegrationProperties.RSocket.Client;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.redepatas.api.cliente.models.ClientModel;
-import com.redepatas.api.cliente.models.Endereco;
 import com.redepatas.api.cliente.repositories.ClientRepository;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.DistanceDurationDto;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.EnderecoParteDto;
@@ -270,34 +268,7 @@ public class ServicoService {
             }
         }
 
-        // Processar adicionais se fornecidos
-        if (dto.getAdicionais() != null) {
-            // Limpar adicionais existentes
-            servico.getAdicionais().clear();
-
-            // Adicionar novos adicionais
-            List<AdicionaisModel> novosAdicionais = dto.getAdicionais().stream()
-                    .map(adicionalDTO -> {
-                        AdicionaisModel adicional = converterAdicionalDTO(adicionalDTO);
-                        return adicional;
-                    })
-                    .collect(Collectors.toList());
-            servico.setAdicionais(novosAdicionais);
-        }
-
-        // Processar agenda se fornecida
-        if (dto.getAgenda() != null) {
-            // Se já existe uma agenda, remover a referência e salvar
-            if (servico.getAgenda() != null) {
-                servico.setAgenda(null);
-                servicoRepository.saveAndFlush(servico);
-            }
-
-            // Criar nova agenda
-            AgendaModel novaAgenda = converterAgendaDTO(dto.getAgenda());
-            servico.setAgenda(novaAgenda);
-            novaAgenda.setServico(servico);
-        }
+    // Não atualiza agenda nem adicionais nesta rota. Essas entidades possuem suas próprias rotas de atualização.
 
         ServicoModel servicoAtualizado = servicoRepository.save(servico);
 
