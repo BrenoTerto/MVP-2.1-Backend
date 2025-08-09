@@ -25,8 +25,12 @@ import org.springframework.web.server.ResponseStatusException;
 import com.redepatas.api.cliente.models.ClientModel;
 import com.redepatas.api.cliente.models.Endereco;
 import com.redepatas.api.cliente.repositories.ClientRepository;
+import com.redepatas.api.parceiro.dtos.PartnerDtos.AdicionalProjecao;
+import com.redepatas.api.parceiro.dtos.PartnerDtos.DetalhesServicoDto;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.DistanceDurationDto;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.EnderecoParteDto;
+import com.redepatas.api.parceiro.dtos.PartnerDtos.HorarioFuncionamentoDto;
+import com.redepatas.api.parceiro.dtos.PartnerDtos.HorarioProjecao;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.ParceiroBuscaProjecao;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerDto;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.AdicionalResponseDTO;
@@ -48,6 +52,8 @@ import com.redepatas.api.parceiro.models.PartnerModel;
 import com.redepatas.api.parceiro.models.ServicoModel;
 import com.redepatas.api.parceiro.models.TipoServico;
 import com.redepatas.api.parceiro.models.Enum.DiaSemana;
+import com.redepatas.api.parceiro.repositories.AdicionaisRepository;
+import com.redepatas.api.parceiro.repositories.HorariosRepository;
 import com.redepatas.api.parceiro.repositories.PartnerRepository;
 import com.redepatas.api.parceiro.repositories.ServicoRepository;
 
@@ -59,11 +65,31 @@ public class ServicoService {
 
     @Autowired
     private PartnerRepository partnerRepository;
+
     @Autowired
     private ClientRepository clientRepository;
 
+    @Autowired
+    AdicionaisRepository adicionaisRepository;
+
+    @Autowired
+    HorariosRepository horariosRepository;
+
     @Value("${api.key.google.maps}")
     private String API_KEY;
+
+    public DetalhesServicoDto buscarDetalhesServico(UUID id, String diaSemana) {
+
+        ServicoModel servico = servicoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Serviço não encontrado"));
+
+        List<AdicionalProjecao> adicionais = adicionaisRepository.findAdicionaisByServicoId(id);
+        List<HorarioProjecao> horarios = horariosRepository.findHorariosByServicoId(id, diaSemana);
+
+        DetalhesServicoDto detalhes = new DetalhesServicoDto(adicionais, horarios);
+
+        return detalhes;
+    }
 
     public List<PartnerDto> buscarParceirosDisponiveis(String cidade, String rua, String bairro, String loginCliente,
             String diaSemana, String tipoServico, String tamanhoPet) {
@@ -443,7 +469,7 @@ public class ServicoService {
     }
 
     public List<String> listarTiposPermitidos() {
-        return List.of("BANHO", "TOSA", "CONSULTA");
+        return List.of("BANHO", "TOSA", "CONSULTA", "TOSA_HIGIENICA");
     }
 
     private AgendaResponseDTO converterAgendaParaDTO(AgendaModel agenda) {

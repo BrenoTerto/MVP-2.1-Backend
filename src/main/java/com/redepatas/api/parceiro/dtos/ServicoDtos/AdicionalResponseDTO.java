@@ -6,10 +6,10 @@ import lombok.Data;
 
 @Data
 public class AdicionalResponseDTO {
-    
+
     private UUID id;
     private String nome;
     private String descricao;
-    private double precoPequeno;
+    private Double precoPequeno;
     private Double precoGrande;
 }

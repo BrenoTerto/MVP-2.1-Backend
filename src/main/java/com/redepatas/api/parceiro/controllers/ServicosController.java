@@ -22,7 +22,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.redepatas.api.parceiro.dtos.PartnerDtos.AdicionalProjecao;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.BuscarParceirosDisponiveisDTO;
+import com.redepatas.api.parceiro.dtos.PartnerDtos.DetalhesServicoDto;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerDto;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.AtualizarServicoDTO;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.CriarServicoDTO;
@@ -53,6 +55,12 @@ public class ServicosController {
                 dto.tipoServico(),
                 dto.tamanhoPet());
         return parceiros;
+    }
+
+    @GetMapping("/detalhes/{id}/{diaSemana}")
+    public ResponseEntity<DetalhesServicoDto> buscarDetalhesServico(@PathVariable UUID id,
+            @PathVariable String diaSemana) {
+        return ResponseEntity.ok(servicoService.buscarDetalhesServico(id, diaSemana));
     }
 
     @PostMapping("/criar")
