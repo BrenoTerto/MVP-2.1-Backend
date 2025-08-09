@@ -1,10 +1,7 @@
 package com.redepatas.api.parceiro.dtos.ServicoDtos;
 
-import java.util.List;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
 
@@ -21,10 +18,4 @@ public class AtualizarServicoDTO {
     private Double precoGrande;
 
     private Boolean aceitaPetGrande;
-
-    @Valid
-    private List<CriarAdicionalDTO> adicionais;
-
-    @Valid
-    private CriarAgendaDTO agenda;
 }
