@@ -22,11 +22,6 @@ public class AgendamentoAdicionalModel {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
 
-    // Relacionamento opcional para manter vínculo com o adicional original (se ainda existir)
-    @ManyToOne(fetch = FetchType.LAZY, optional = true)
-    @JoinColumn(name = "adicional_id")
-    private AdicionaisModel adicional;
-
     // Snapshots para histórico
     @Column(name = "nome_snapshot", nullable = false)
     private String nomeSnapshot;

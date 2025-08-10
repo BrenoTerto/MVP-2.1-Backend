@@ -1,14 +1,18 @@
 package com.redepatas.api.parceiro.models;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import com.redepatas.api.cliente.models.ClientModel;
 import com.redepatas.api.cliente.models.PetModel;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -48,10 +52,10 @@ public class AgendamentoModel {
     @JoinColumn(name = "horario_id", nullable = false)
     private AgendaHorarioModel horario;
 
-    @NotNull
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "servico_id", nullable = false)
-    private ServicoModel servico;
+    @Enumerated(EnumType.STRING)
+    @NotNull(message = "Tipo do serviço é obrigatório")
+    private TipoServico servico_tipo;
+
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
@@ -60,8 +64,27 @@ public class AgendamentoModel {
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "pet_id", nullable = false)
-    private PetModel pet;
+    @JoinColumn(name = "cliente_id", nullable = false)
+    private ClientModel cliente;
+
+    //DADOS SNAPSHOT DO PET
+    private String pet_avatarUrl;
+    @NotNull(message = "O campo nome é obrigatório.")
+    @Column(nullable = false)
+    private String pet_nome;
+    @NotNull(message = "O campo espécie é obrigatório.")
+    @Column(nullable = false)
+    private String pet_especie;
+    private String pet_raca;
+    private String pet_observacoes;
+    @NotNull(message = "O campo castrado é obrigatório.")
+    @Column(nullable = false)
+    private Boolean pet_castrado;
+    private Boolean pet_sociavel;
+    private String pet_sexo;
+    private BigDecimal pet_peso;
+    private String pet_tipoSanguineo;
+    private String pet_porte;
 
     @OneToMany
     @JoinColumn(name = "agendamento_id")

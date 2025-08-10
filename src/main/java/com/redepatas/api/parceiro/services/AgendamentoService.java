@@ -94,7 +94,6 @@ public class AgendamentoService {
                 response.getItens().add(item);
 
                 AgendamentoAdicionalModel itemPersist = new AgendamentoAdicionalModel();
-                itemPersist.setAdicional(ad);
                 itemPersist.setNomeSnapshot(ad.getNome());
                 itemPersist.setPrecoPequenoSnapshot(ad.getPrecoPequeno());
                 itemPersist.setPrecoGrandeSnapshot(ad.getPrecoGrande());
@@ -112,14 +111,24 @@ public class AgendamentoService {
                 });
 
         AgendamentoModel ag = new AgendamentoModel();
-        ag.setServico(servico);
+        ag.setServico_tipo(servico.getTipo());
         ag.setParceiro(servico.getParceiro());
-        ag.setPet(pet);
         ag.setHorario(horario);
+        ag.setPet_avatarUrl(pet.getAvatarUrl());
+        ag.setPet_castrado(pet.getCastrado());
+        ag.setPet_especie(pet.getEspecie());
+        ag.setPet_nome(pet.getNome());
+        ag.setPet_observacoes(pet.getObservacoes());
+        ag.setPet_peso(pet.getPeso());
+        ag.setPet_porte(pet.getPorte());
+        ag.setPet_raca(pet.getRaca());
+        ag.setPet_sexo(pet.getSexo());
+        ag.setPet_sociavel(pet.getSociavel());
+        ag.setPet_tipoSanguineo(pet.getTipoSanguineo());
         ag.setDataAgendamento(dto.getDataAgendamento());
         ag.setDataCriacaoAgendamento(LocalDateTime.now());
         ag.setPrecoFinal(precoFinal);
-
+        
         // Verificar se o dia do horário corresponde ao dia da semana da data
         AgendaDiaModel dia = horario.getDia();
         if (dia != null && dia.getDiaSemana() != null) {
