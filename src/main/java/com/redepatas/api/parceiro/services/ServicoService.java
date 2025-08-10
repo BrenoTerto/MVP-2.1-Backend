@@ -268,8 +268,6 @@ public class ServicoService {
             }
         }
 
-    // Não atualiza agenda nem adicionais nesta rota. Essas entidades possuem suas próprias rotas de atualização.
-
         ServicoModel servicoAtualizado = servicoRepository.save(servico);
 
         return converterParaDTO(servicoAtualizado);
