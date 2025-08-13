@@ -2,9 +2,9 @@ package com.redepatas.api.parceiro.services;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.ArrayList;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -16,15 +16,18 @@ import com.redepatas.api.cliente.models.PetModel;
 import com.redepatas.api.cliente.repositories.ClientRepository;
 import com.redepatas.api.cliente.repositories.PetRepository;
 import com.redepatas.api.parceiro.dtos.AgedamentoDtos.AgendamentoNotificationDto;
+import com.redepatas.api.parceiro.dtos.AgendamentoDtos.AgendamentoDetalheResponseDTO;
+import com.redepatas.api.parceiro.dtos.AgendamentoDtos.AgendamentoListaResponseDTO;
 import com.redepatas.api.parceiro.dtos.AgendamentoDtos.AgendamentoResponseDTO;
 import com.redepatas.api.parceiro.dtos.AgendamentoDtos.CriarAgendamentoDTO;
 import com.redepatas.api.parceiro.models.AdicionaisModel;
-import com.redepatas.api.parceiro.models.AgendaHorarioModel;
-import com.redepatas.api.parceiro.models.AgendamentoModel;
-import com.redepatas.api.parceiro.models.AgendamentoAdicionalModel;
 import com.redepatas.api.parceiro.models.AgendaDiaModel;
+import com.redepatas.api.parceiro.models.AgendaHorarioModel;
+import com.redepatas.api.parceiro.models.AgendamentoAdicionalModel;
+import com.redepatas.api.parceiro.models.AgendamentoModel;
 import com.redepatas.api.parceiro.models.ServicoModel;
 import com.redepatas.api.parceiro.models.Enum.DiaSemana;
+import com.redepatas.api.parceiro.models.Enum.StatusAgendamento;
 import com.redepatas.api.parceiro.repositories.AdicionaisRepository;
 import com.redepatas.api.parceiro.repositories.AgendamentoRepository;
 import com.redepatas.api.parceiro.repositories.ServicoRepository;
@@ -32,37 +35,23 @@ import com.redepatas.api.parceiro.repositories.ServicoRepository;
 @Service
 public class AgendamentoService {
 
-    @Autowired
-    private AgendamentoRepository agendamentoRepository;
-    @Autowired
-    private ClientRepository clientRepository; 
-    @Autowired
-    private ServicoRepository servicoRepository;
-    @Autowired
-    private PetRepository petRepository;
-    @Autowired
-    private AdicionaisRepository adicionaisRepository;
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+    @Autowired private AgendamentoRepository agendamentoRepository;
+    @Autowired private ClientRepository clientRepository;
+    @Autowired private ServicoRepository servicoRepository;
+    @Autowired private PetRepository petRepository;
+    @Autowired private AdicionaisRepository adicionaisRepository;
+    @Autowired private SimpMessagingTemplate messagingTemplate;
 
     private DiaSemana mapearDiaSemana(LocalDate data) {
         switch (data.getDayOfWeek()) {
-            case MONDAY:
-                return DiaSemana.SEGUNDA;
-            case TUESDAY:
-                return DiaSemana.TERCA;
-            case WEDNESDAY:
-                return DiaSemana.QUARTA;
-            case THURSDAY:
-                return DiaSemana.QUINTA;
-            case FRIDAY:
-                return DiaSemana.SEXTA;
-            case SATURDAY:
-                return DiaSemana.SABADO;
-            case SUNDAY:
-                return DiaSemana.DOMINGO;
-            default:
-                throw new IllegalArgumentException("Dia da semana inválido");
+            case MONDAY: return DiaSemana.SEGUNDA;
+            case TUESDAY: return DiaSemana.TERCA;
+            case WEDNESDAY: return DiaSemana.QUARTA;
+            case THURSDAY: return DiaSemana.QUINTA;
+            case FRIDAY: return DiaSemana.SEXTA;
+            case SATURDAY: return DiaSemana.SABADO;
+            case SUNDAY: return DiaSemana.DOMINGO;
+            default: throw new IllegalArgumentException("Dia da semana inválido");
         }
     }
 
@@ -72,12 +61,12 @@ public class AgendamentoService {
                 .orElseThrow(() -> new IllegalArgumentException("Serviço não encontrado"));
         ClientModel cliente = clientRepository.findById(clientId)
                 .orElseThrow(() -> new IllegalArgumentException("Cliente não encontrado"));
+
         AgendaHorarioModel horario = servico.getAgenda() == null ? null
                 : servico.getAgenda().getDias().stream()
                         .flatMap(d -> d.getHorarios().stream())
                         .filter(h -> h.getId().equals(dto.getHorarioId()))
-                        .findFirst()
-                        .orElse(null);
+                        .findFirst().orElse(null);
         if (horario == null) {
             throw new IllegalArgumentException("Horário não encontrado para este serviço");
         }
@@ -88,10 +77,7 @@ public class AgendamentoService {
             throw new IllegalArgumentException("Este pet não pertence ao cliente autenticado");
         }
 
-        // Determinar porte do pet via campo porte (string). Valores esperados:
-        // PEQUENO|GRANDE
         boolean petGrande = pet.getPorte() != null && pet.getPorte().equalsIgnoreCase("GRANDE");
-
         Double precoBase;
         if (petGrande) {
             if (Boolean.FALSE.equals(servico.getAceitaPetGrande()) || servico.getPrecoGrande() == null) {
@@ -136,11 +122,8 @@ public class AgendamentoService {
 
         double precoFinal = precoBase + adicionaisTotal;
 
-        // Verificar disponibilidade do horário na data
         agendamentoRepository.findByHorario_IdAndDataAgendamento(dto.getHorarioId(), dto.getDataAgendamento())
-                .ifPresent(a -> {
-                    throw new IllegalArgumentException("Horário já reservado para esta data");
-                });
+                .ifPresent(a -> { throw new IllegalArgumentException("Horário já reservado para esta data"); });
 
         AgendamentoModel ag = new AgendamentoModel();
         ag.setCliente(cliente);
@@ -161,6 +144,7 @@ public class AgendamentoService {
         ag.setDataAgendamento(dto.getDataAgendamento());
         ag.setDataCriacaoAgendamento(LocalDateTime.now());
         ag.setPrecoFinal(precoFinal);
+        ag.setStatus(StatusAgendamento.PENDENTE);
 
         AgendaDiaModel dia = horario.getDia();
         if (dia != null && dia.getDiaSemana() != null) {
@@ -169,6 +153,7 @@ public class AgendamentoService {
                 throw new IllegalArgumentException("Data não corresponde ao dia da agenda do horário");
             }
         }
+
         String destination = "/topic/agendamentos/" + servico.getParceiro().getIdPartner().toString();
         ag.setItens(itensPersist);
         AgendamentoModel salvo = agendamentoRepository.save(ag);
@@ -198,4 +183,93 @@ public class AgendamentoService {
         return response;
     }
 
+    public List<AgendamentoListaResponseDTO> listarAgendamentosDoDia(UUID parceiroId, LocalDate data) {
+        List<AgendamentoModel> lista = agendamentoRepository
+                .findAllByParceiro_IdPartnerAndDataAgendamento(parceiroId, data);
+        return lista.stream().map(ag -> new AgendamentoListaResponseDTO(
+                ag.getId(),
+                ag.getDataAgendamento(),
+                ag.getHorario().getHorarioInicio() + " - " + ag.getHorario().getHorarioFim(),
+                ag.getStatus(),
+                ag.getCliente().getName(),
+                ag.getPet_nome(),
+                ag.getPrecoFinal(),
+                ag.getServico_tipo())).toList();
+    }
+
+    public List<AgendamentoListaResponseDTO> listarAgendamentosPendentes(UUID parceiroId) {
+        List<AgendamentoModel> lista = agendamentoRepository
+                .findAllByParceiro_IdPartnerAndStatus(parceiroId, StatusAgendamento.PENDENTE);
+        return lista.stream().map(ag -> new AgendamentoListaResponseDTO(
+                ag.getId(),
+                ag.getDataAgendamento(),
+                ag.getHorario().getHorarioInicio() + " - " + ag.getHorario().getHorarioFim(),
+                ag.getStatus(),
+                ag.getCliente().getName(),
+                ag.getPet_nome(),
+                ag.getPrecoFinal(),
+                ag.getServico_tipo())).toList();
+    }
+
+    public AgendamentoDetalheResponseDTO buscarDetalhesAgendamento(UUID parceiroId, UUID agendamentoId) {
+        AgendamentoModel ag = agendamentoRepository.findByIdAndParceiro_IdPartner(agendamentoId, parceiroId)
+                .orElseThrow(() -> new IllegalArgumentException("Agendamento não encontrado para este parceiro"));
+
+        List<AgendamentoDetalheResponseDTO.ItemAdicional> itens = new ArrayList<>();
+        if (ag.getItens() != null) {
+            for (AgendamentoAdicionalModel it : ag.getItens()) {
+                itens.add(new AgendamentoDetalheResponseDTO.ItemAdicional(
+                        it.getNomeSnapshot(),
+                        it.getPrecoAplicado()));
+            }
+        }
+
+        return new AgendamentoDetalheResponseDTO(
+                ag.getId(),
+                ag.getDataAgendamento(),
+                ag.getHorario().getHorarioInicio() + " - " + ag.getHorario().getHorarioFim(),
+                ag.getStatus(),
+                ag.getPrecoFinal(),
+                ag.getServico_tipo(),
+                ag.getCliente().getName(),
+                ag.getPet_nome(),
+                ag.getPet_especie(),
+                ag.getPet_raca(),
+                ag.getPet_observacoes(),
+                ag.getPet_castrado(),
+                ag.getPet_sociavel(),
+                ag.getPet_sexo(),
+                ag.getPet_peso(),
+                ag.getPet_tipoSanguineo(),
+                ag.getPet_porte(),
+                ag.getPet_avatarUrl(),
+                itens);
+    }
+
+    @Transactional
+    public void decidirAgendamento(UUID parceiroId, UUID agendamentoId, boolean aceitar) {
+        AgendamentoModel ag = agendamentoRepository.findByIdAndParceiro_IdPartner(agendamentoId, parceiroId)
+                .orElseThrow(() -> new IllegalArgumentException("Agendamento não encontrado para este parceiro"));
+
+        if (ag.getStatus() != StatusAgendamento.PENDENTE) {
+            throw new IllegalArgumentException("Agendamento não está pendente");
+        }
+
+        if (aceitar) {
+            ag.setStatus(StatusAgendamento.CONFIRMADO);
+            List<AgendamentoModel> conflitos = agendamentoRepository
+                    .findAllByHorario_IdAndDataAgendamento(ag.getHorario().getId(), ag.getDataAgendamento());
+            for (AgendamentoModel outro : conflitos) {
+                if (!outro.getId().equals(ag.getId()) && outro.getStatus() == StatusAgendamento.PENDENTE) {
+                    outro.setStatus(StatusAgendamento.CANCELADO);
+                }
+            }
+            agendamentoRepository.saveAll(conflitos);
+        } else {
+            ag.setStatus(StatusAgendamento.CANCELADO);
+        }
+
+        agendamentoRepository.save(ag);
+    }
 }
+

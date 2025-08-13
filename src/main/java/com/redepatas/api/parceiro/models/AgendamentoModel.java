@@ -8,6 +8,7 @@ import java.util.UUID;
 
 import com.redepatas.api.cliente.models.ClientModel;
 import com.redepatas.api.cliente.models.PetModel;
+import com.redepatas.api.parceiro.models.Enum.StatusAgendamento;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -51,6 +52,11 @@ public class AgendamentoModel {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "horario_id", nullable = false)
     private AgendaHorarioModel horario;
+
+    @Enumerated(EnumType.STRING)
+    @NotNull
+    @Column(name = "status", nullable = false)
+    private StatusAgendamento status;
 
     @Enumerated(EnumType.STRING)
     @NotNull(message = "Tipo do serviço é obrigatório")
