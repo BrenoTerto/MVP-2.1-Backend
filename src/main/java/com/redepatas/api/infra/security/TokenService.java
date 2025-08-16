@@ -36,6 +36,7 @@ public class TokenService {
                     .withSubject(user.getLogin())
                     .withClaim("role", user.getRole().toString())
                     .withClaim("id", user.getId().toString())
+                    .withClaim("nome", user.getNome())
                     .withExpiresAt(genereteExperiatiopnDate())
                     .sign(algorithm);
             return token;

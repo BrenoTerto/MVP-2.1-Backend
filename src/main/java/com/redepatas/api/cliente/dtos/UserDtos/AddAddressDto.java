@@ -11,6 +11,6 @@ public record AddAddressDto(
         @NotBlank(message = "O campo estado é obrigatório.") @Size(max = 50) String estado,
         @NotBlank(message = "O campo CEP é obrigatório.") @Size(max = 10) String cep,
         @NotNull(message = "O campo número é obrigatório.") Integer numero,
-        @NotBlank(message = "O campo complemento é obrigatório.") @Size(max = 50) String complemento,
-        @NotBlank(message = "O campo lugar é obrigatório.") @Size(max = 50) String lugar) {
+        String complemento,
+        String lugar) {
 }
