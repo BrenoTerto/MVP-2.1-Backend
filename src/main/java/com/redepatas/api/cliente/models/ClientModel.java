@@ -37,6 +37,7 @@ public class ClientModel implements UserDetails, TokenUser {
 
     @NotNull(message = "O nome não pode ser nulo")
     private String name;
+    @Enumerated(EnumType.STRING)
     private ClientRole role;
     private String phoneNumber;
     private String email;
@@ -110,5 +111,10 @@ public class ClientModel implements UserDetails, TokenUser {
     @Override
     public UUID getId() {
         return this.idUser;
+    }
+
+    @Override
+    public String getNome() {
+        return this.name;
     }
 }

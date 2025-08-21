@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.redepatas.api.parceiro.models.Enum.TipoPartner;
+import com.redepatas.api.parceiro.models.Enum.TipoPet;
 import com.redepatas.api.cliente.models.ClientRole;
 import com.redepatas.api.infra.security.TokenUser;
 
@@ -28,6 +29,7 @@ public class PartnerModel implements UserDetails, TokenUser {
     @Column(unique = true)
     private String login;
     private String password;
+    @Enumerated(EnumType.STRING)
     private ClientRole role;
 
     private String name;
@@ -40,7 +42,8 @@ public class PartnerModel implements UserDetails, TokenUser {
     private String emailContato;
     private String numeroContato;
 
-    private String tipoPet;
+    @Enumerated(EnumType.STRING)
+    private TipoPet tipoPet;
 
     @OneToOne(mappedBy = "partnerModel", cascade = CascadeType.ALL, orphanRemoval = true)
     private EnderecoPartner endereco;
@@ -68,7 +71,7 @@ public class PartnerModel implements UserDetails, TokenUser {
             EnderecoPartner endereco,
             TipoPartner tipo,
             String descricao,
-            String tipoPet, // TODOS, GRANDE, PEQUENO
+            TipoPet tipoPet, // TODOS, GRANDE, PEQUENO
             ClientRole role) {
         this.login = login;
         this.password = password;
@@ -134,5 +137,10 @@ public class PartnerModel implements UserDetails, TokenUser {
     @Override
     public UUID getId() {
         return idPartner;
+    }
+
+    @Override
+    public String getNome() {
+        return this.name;
     }
 }

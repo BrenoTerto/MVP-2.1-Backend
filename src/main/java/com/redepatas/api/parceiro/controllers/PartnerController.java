@@ -18,11 +18,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.core.userdetails.UserDetails;
+
+import com.redepatas.api.parceiro.dtos.PartnerDtos.AtualizarParceiroBasicDTO;
+import com.redepatas.api.parceiro.dtos.PartnerDtos.AtualizarEnderecoPartnerDTO;
+import com.redepatas.api.cliente.dtos.ChangePasswordDto;
 
 @RestController
 @RequestMapping("/partners")
@@ -83,4 +89,32 @@ public class PartnerController {
     // return ResponseEntity.ok(partnerService.getOnlyPartner(dto.idParceiro(),
     // dto.nomeServico(), data));
     // }
+
+    @PutMapping("/me/basic")
+    public ResponseEntity<String> updateBasic(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody @Valid AtualizarParceiroBasicDTO dto) {
+        String login = userDetails.getUsername();
+        String resp = partnerService.updateBasic(login, dto.name(), dto.descricao());
+        return ResponseEntity.ok(resp);
+    }
+
+    @PutMapping("/me/address")
+    public ResponseEntity<String> updateAddress(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody @Valid AtualizarEnderecoPartnerDTO dto) {
+        String login = userDetails.getUsername();
+        String resp = partnerService.updateAddress(login, dto.rua(), dto.bairro(), dto.cidade(), dto.estado(),
+                dto.cep(), dto.numero(), dto.complemento(), dto.lugar());
+        return ResponseEntity.ok(resp);
+    }
+
+    @PutMapping("/me/password")
+    public ResponseEntity<String> changePassword(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody @Valid ChangePasswordDto dto) {
+        String login = userDetails.getUsername();
+        String resp = partnerService.changePassword(login, dto.oldPassword(), dto.newPassword(), authenticationManager);
+        return ResponseEntity.ok(resp);
+    }
 }

@@ -10,6 +10,7 @@ import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerRecordDto;
 import com.redepatas.api.parceiro.models.EnderecoPartner;
 import com.redepatas.api.parceiro.models.PartnerModel;
 import com.redepatas.api.parceiro.models.Enum.DiaSemana;
+import com.redepatas.api.parceiro.models.Enum.TipoPet;
 import com.redepatas.api.parceiro.repositories.EnderecoPartnerRepository;
 import com.redepatas.api.parceiro.repositories.PartnerRepository;
 import com.redepatas.api.cliente.services.FileService;
@@ -38,6 +39,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationManager;
 
 @Service
 public class PartnerService {
@@ -121,7 +124,7 @@ public class PartnerService {
                                 endereco,
                                 dto.categoria(),
                                 dto.descricao(),
-                                dto.tipoPet(),
+                                TipoPet.fromString(dto.tipoPet()),
                                 ClientRole.PARTNER);
 
                 endereco.setPartnerModel(partner);
@@ -129,6 +132,67 @@ public class PartnerService {
 
                 partnerRepository.save(partner);
                 return "Parceiro cadastrado com sucesso!";
+        }
+
+        public String updateBasic(String login, String name, String descricao) {
+                var partner = partnerRepository.findByLogin(login);
+                if (partner == null) {
+                        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Parceiro não encontrado");
+                }
+                if (name != null && !name.isBlank()) {
+                        partner.setName(name.trim());
+                }
+                if (descricao != null) {
+                        partner.setDescricao(descricao.trim());
+                }
+                partnerRepository.save(partner);
+                return "Perfil do parceiro atualizado com sucesso";
+        }
+
+        public String updateAddress(String login, String rua, String bairro, String cidade, String estado,
+                        String cep, Integer numero, String complemento, String lugar) {
+                var partner = partnerRepository.findByLogin(login);
+                if (partner == null) {
+                        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Parceiro não encontrado");
+                }
+
+                EnderecoPartner end = partner.getEndereco();
+                if (end == null) {
+                        end = new EnderecoPartner();
+                        end.setPartnerModel(partner);
+                        partner.setEndereco(end);
+                }
+                if (rua != null) end.setRua(rua);
+                if (bairro != null) end.setBairro(bairro);
+                if (cidade != null) end.setCidade(cidade);
+                if (estado != null) end.setEstado(estado);
+                if (cep != null) end.setCep(cep);
+                if (numero != null) end.setNumero(numero);
+                if (complemento != null) end.setComplemento(complemento);
+                if (lugar != null) end.setLugar(lugar);
+
+                // save via partner cascade
+                partnerRepository.save(partner);
+                return "Endereço do parceiro atualizado com sucesso";
+        }
+
+        public String changePassword(String login, String oldPassword, String newPassword,
+                        AuthenticationManager authenticationManager) {
+                var partner = partnerRepository.findByLogin(login);
+                if (partner == null) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Parceiro não encontrado!");
+                }
+                try {
+                        var auth = new UsernamePasswordAuthenticationToken(login,
+                                        oldPassword);
+                        authenticationManager.authenticate(auth);
+                } catch (Exception e) {
+                        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Senha antiga incorreta!");
+                }
+                String encryptedPassword = new BCryptPasswordEncoder().encode(newPassword);
+                partner.setPassword(encryptedPassword);
+                partnerRepository.save(partner);
+                return "Senha alterada com sucesso";
         }
 
         private static DiaSemana converterDayOfWeekParaDiaSemana(java.time.DayOfWeek dayOfWeek) {

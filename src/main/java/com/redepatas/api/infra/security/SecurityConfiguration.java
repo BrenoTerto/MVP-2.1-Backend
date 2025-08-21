@@ -65,10 +65,16 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/assinaturas/myPlan").hasRole("USER")
                         .requestMatchers("/assinaturas/**").permitAll()
 
+                        // Parceiro - rotas autenticadas
+                        .requestMatchers(HttpMethod.PUT, "/partners/me/basic").hasRole("PARTNER")
+                        .requestMatchers(HttpMethod.PUT, "/partners/me/address").hasRole("PARTNER")
+                        .requestMatchers(HttpMethod.PUT, "/partners/me/security/password").hasRole("PARTNER")
+
+                        // Rotas públicas dos parceiros
+                        .requestMatchers(HttpMethod.POST, "/partners/create").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/partners/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/partners/getAll").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/partners/getServices")
-                        .hasRole("USER")
-                        .requestMatchers("/partners/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/partners/getServices").hasRole("USER")
                         .requestMatchers("/parceiros/**").permitAll()
                         .requestMatchers("/files/**").permitAll() // AUTENTICAR EM BREVE
                         .requestMatchers("/webhook/**").permitAll() // ADICIONAR
