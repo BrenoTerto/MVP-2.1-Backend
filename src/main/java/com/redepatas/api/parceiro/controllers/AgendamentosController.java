@@ -1,10 +1,14 @@
 package com.redepatas.api.parceiro.controllers;
 
+import java.util.List;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -15,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.redepatas.api.parceiro.dtos.AgedamentoDtos.AvaliarServicoDto;
+import com.redepatas.api.parceiro.dtos.AgedamentoDtos.ResponseAgendamentosdto;
 import com.redepatas.api.parceiro.dtos.AgendamentoDtos.AgendamentoResponseDTO;
 import com.redepatas.api.parceiro.dtos.AgendamentoDtos.CriarAgendamentoDTO;
 import com.redepatas.api.parceiro.dtos.AgendamentoDtos.AtualizarStatusAgendamentoDTO;
@@ -74,6 +80,13 @@ public class AgendamentosController {
         }
     }
 
+    @PutMapping("/avaliar")
+    public ResponseEntity<String> avaliarServico(@AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody AvaliarServicoDto avaliarServicoDto) {
+        String login = userDetails.getUsername();
+        return ResponseEntity.ok(agendamentoService.avaliarServico(login, avaliarServicoDto));
+    }
+
     @GetMapping("/pendentes")
     public ResponseEntity<?> listarAgendamentosPendentes() {
         try {
@@ -128,5 +141,12 @@ public class AgendamentosController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("Erro interno do servidor: " + e.getMessage());
         }
+    }
+
+    @GetMapping({ "/meusAgendamentos" })
+    public ResponseEntity<List<ResponseAgendamentosdto>> meusAgendamentos(
+            @AuthenticationPrincipal UserDetails userDetails) {
+        String login = userDetails.getUsername();
+        return ResponseEntity.ok(this.agendamentoService.meusAgendamentos(login));
     }
 }

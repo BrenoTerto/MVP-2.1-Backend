@@ -159,14 +159,14 @@ public class UserServices {
         }
 
         var client = (ClientModel) user;
-        if (updateProfileDto.name() != null) {
-            client.setName(updateProfileDto.name());
+        if (updateProfileDto.nome() != null) {
+            client.setName(updateProfileDto.nome());
         }
-        if (updateProfileDto.CPF() != null) {
-            client.setCPF(updateProfileDto.CPF());
+        if (updateProfileDto.dataNascimento() != null) {
+            client.setBirthDate(updateProfileDto.dataNascimento());
         }
-        if (updateProfileDto.birthDate() != null) {
-            client.setBirthDate(updateProfileDto.birthDate());
+        if(updateProfileDto.telefone() != null) {
+            client.setPhoneNumber(updateProfileDto.telefone());
         }
         repositoryUser.save(client);
         return "Perfil atualizado com sucesso";

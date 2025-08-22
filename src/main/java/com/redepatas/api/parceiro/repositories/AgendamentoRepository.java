@@ -10,10 +10,13 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import com.redepatas.api.cliente.models.ClientModel;
 import com.redepatas.api.parceiro.models.AgendamentoModel;
 
 @Repository
 public interface AgendamentoRepository extends JpaRepository<AgendamentoModel, UUID> {
+    List<AgendamentoModel> findByCliente(ClientModel paramClientModel);
+
     Optional<AgendamentoModel> findByHorario_IdAndDataAgendamento(UUID horarioId, LocalDate dataAgendamento);
 
     List<AgendamentoModel> findAllByParceiro_IdPartnerAndDataAgendamento(UUID parceiroId, LocalDate dataAgendamento);

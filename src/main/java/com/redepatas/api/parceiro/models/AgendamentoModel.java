@@ -58,10 +58,11 @@ public class AgendamentoModel {
     @Column(name = "status", nullable = false)
     private StatusAgendamento status;
 
+    private Boolean avaliado;
+    
     @Enumerated(EnumType.STRING)
     @NotNull(message = "Tipo do serviço é obrigatório")
     private TipoServico servico_tipo;
-
 
     @NotNull
     @ManyToOne(fetch = FetchType.LAZY)
@@ -73,7 +74,7 @@ public class AgendamentoModel {
     @JoinColumn(name = "cliente_id", nullable = false)
     private ClientModel cliente;
 
-    //DADOS SNAPSHOT DO PET
+    // DADOS SNAPSHOT DO PET
     private String pet_avatarUrl;
     @NotNull(message = "O campo nome é obrigatório.")
     @Column(nullable = false)
