@@ -27,7 +27,7 @@ public interface PartnerRepository extends JpaRepository<PartnerModel, UUID> {
                     s.id AS id_servico,
                     p.name AS nome_do_parceiro,
                     p.image_url AS imagem,
-                    p.avaliacao,
+                    (p.avaliacao / NULLIF(p.qtd_avaliacoes, 0)) AS avaliacao,
                     ep.cidade,
                     ep.estado,
                     ep.bairro,
