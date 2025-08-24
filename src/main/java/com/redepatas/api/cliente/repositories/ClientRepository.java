@@ -13,6 +13,7 @@ import java.util.UUID;
 @Repository
 public interface ClientRepository extends JpaRepository<ClientModel, UUID> {
     UserDetails findByLogin(String login);
+    UserDetails findByEmail(String email);
 
     UserDetails findByPhoneNumber(String phoneNumber);
 

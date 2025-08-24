@@ -191,8 +191,14 @@ public class UserServices {
         return "Senha alterada com sucesso";
     }
 
-    public String recoveryPassword(String login, String novaSenha) {
-        var user = repositoryUser.findByLogin(login);
+    public String recoveryPassword(String loginOuEmail, String novaSenha) {
+        var user = repositoryUser.findByLogin(loginOuEmail);
+        if (user == null) {
+            user = repositoryUser.findByEmail(loginOuEmail);
+        }
+        if (user == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuário não encontrado!");
+        }
         var client = (ClientModel) user;
         String encryptedPassword = new BCryptPasswordEncoder().encode(novaSenha);
         client.setPassword(encryptedPassword);

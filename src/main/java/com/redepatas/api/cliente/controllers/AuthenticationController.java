@@ -203,13 +203,14 @@ public class AuthenticationController {
 
     @PostMapping("/sendEmailRecovery/{email}")
     public ResponseEntity<Void> sendEmailRecovery(@PathVariable("email") String email) throws MessagingException {
-        var client = repository.findByLogin(email);
-        ClientModel clientx = (ClientModel) client;
-        if (client != null && clientx.isEmailConfirmado()) {
-            String token = tokenService.generateTokenPassword(email);
-            emailService.enviarRecovery(email, token);
+        var userDetails = repository.findByEmail(email);
+        if (userDetails instanceof ClientModel clientModel) {
+            if (clientModel.isEmailConfirmado()) {
+                String token = tokenService.generateTokenPassword(clientModel.getEmail());
+                emailService.enviarRecovery(clientModel.getEmail(), token);
+            }
         }
-
+        
         return ResponseEntity.noContent().build();
     }
 

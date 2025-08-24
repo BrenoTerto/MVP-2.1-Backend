@@ -6,7 +6,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.redepatas.api.parceiro.dtos.PartnerDtos.ParceiroBuscaProjecao;
-import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerDto;
 import com.redepatas.api.parceiro.models.PartnerModel;
 
 import java.util.List;
@@ -18,6 +17,8 @@ public interface PartnerRepository extends JpaRepository<PartnerModel, UUID> {
     boolean existsByEmailContato(String email);
 
     PartnerModel findByLogin(String login);
+
+    PartnerModel findByEmailContato(String emailContato);
 
     List<PartnerModel> findByEndereco_Cidade(String cidade);
 
