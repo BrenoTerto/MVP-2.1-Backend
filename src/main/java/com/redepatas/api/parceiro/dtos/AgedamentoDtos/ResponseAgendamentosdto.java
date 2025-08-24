@@ -12,7 +12,7 @@ public record ResponseAgendamentosdto(
     String servico,
     String nomePet,
     String racaPet,
-    LocalDate dataAgendamento,
+    String dataAgendamento,
     String horarioEscolhido,
     String nomeClinica,
     String cpfCnpj) {

@@ -234,4 +234,5 @@ public class AuthenticationController {
         passwordResetToken.delete(token);
         return ResponseEntity.ok(response);
     }
+
 }
