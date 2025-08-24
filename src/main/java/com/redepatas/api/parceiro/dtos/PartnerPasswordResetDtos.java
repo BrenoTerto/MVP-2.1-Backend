@@ -11,7 +11,6 @@ public class PartnerPasswordResetDtos {
     }
 
     public record PartnerResetConfirmDto(
-            @NotBlank(message = "Email é obrigatório") @Email(message = "Email inválido") String email,
             @NotBlank(message = "Token é obrigatório") String token,
             @NotBlank(message = "Nova senha é obrigatória") @Size(min = 6, message = "Senha deve ter ao menos 6 caracteres") String newPassword) {
     }

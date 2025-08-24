@@ -38,7 +38,7 @@ public class PartnerPasswordResetController {
 
     @PostMapping("/reset-confirm")
     public ResponseEntity<?> confirm(@RequestBody @Valid PartnerResetConfirmDto dto) {
-        passwordResetService.confirmReset(dto.email(), dto.token(), dto.newPassword());
+        passwordResetService.confirmReset(dto.token(), dto.newPassword());
         return ResponseEntity.ok().body("Senha alterada com sucesso");
     }
 

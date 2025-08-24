@@ -46,12 +46,12 @@ public class PartnerPasswordResetService {
         }
     }
 
-    public void confirmReset(String email, String rawToken, String newPassword) {
+    public void confirmReset(String rawToken, String newPassword) {
         PasswordResetToken token = tokenService.validarTokenDeReset(rawToken);
-        if (token == null || token.getExpiration().isBefore(LocalDateTime.now())
-                || !token.getEmail().equals(email)) {
+        if (token == null || token.getExpiration().isBefore(LocalDateTime.now())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Token inválido ou expirado");
         }
+        String email = token.getEmail();
         PartnerModel partner = partnerRepository.findByEmailContato(email);
         if (partner == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Parceiro não encontrado");
