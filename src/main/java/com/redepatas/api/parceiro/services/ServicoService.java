@@ -494,4 +494,36 @@ public class ServicoService {
         return dto;
     }
 
+    public void arquivarServico(UUID servicoId, UUID parceiroId) {
+        Optional<ServicoModel> servicoOpt = servicoRepository.findById(servicoId);
+        if (servicoOpt.isEmpty()) {
+            throw new IllegalArgumentException("Serviço não encontrado com ID: " + servicoId);
+        }
+        ServicoModel servico = servicoOpt.get();
+        if (!servico.getParceiro().getIdPartner().equals(parceiroId)) {
+            throw new IllegalArgumentException("Você não tem permissão para arquivar este serviço");
+        }
+        if (Boolean.FALSE.equals(servico.getAtivo())) {
+            return;
+        }
+        servico.setAtivo(false);
+        servicoRepository.save(servico);
+    }
+
+    public void ativarServico(UUID servicoId, UUID parceiroId) {
+        Optional<ServicoModel> servicoOpt = servicoRepository.findById(servicoId);
+        if (servicoOpt.isEmpty()) {
+            throw new IllegalArgumentException("Serviço não encontrado com ID: " + servicoId);
+        }
+        ServicoModel servico = servicoOpt.get();
+        if (!servico.getParceiro().getIdPartner().equals(parceiroId)) {
+            throw new IllegalArgumentException("Você não tem permissão para ativar este serviço");
+        }
+        if (Boolean.TRUE.equals(servico.getAtivo())) {
+            return;
+        }
+        servico.setAtivo(true);
+        servicoRepository.save(servico);
+    }
+
 }

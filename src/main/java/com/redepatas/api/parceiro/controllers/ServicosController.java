@@ -225,5 +225,4 @@ public class ServicosController {
                     .body("Erro interno do servidor: " + e.getMessage());
         }
     }
-
 }
