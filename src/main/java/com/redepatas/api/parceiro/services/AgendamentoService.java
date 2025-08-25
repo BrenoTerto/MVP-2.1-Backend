@@ -343,7 +343,7 @@ public class AgendamentoService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usunencontrado/logado");
         List<AgendamentoModel> agendamentos = this.agendamentoRepository.findByCliente(cliente);
         return agendamentos.stream()
-                .map(agendamento -> new ResponseAgendamentosdto(agendamento.getId(), StatusAgendamento.PENDENTE,
+                .map(agendamento -> new ResponseAgendamentosdto(agendamento.getId(), agendamento.getStatus(),
                         Boolean.valueOf(false), agendamento.getServico_tipo().toString(), agendamento.getPet_nome(),
                         agendamento.getPet_nome(), agendamento.getDataAgendamento().format(this.formatter),
                         agendamento.getHorario().getHorarioInicio() + "-" + agendamento.getHorario().getHorarioInicio(),
