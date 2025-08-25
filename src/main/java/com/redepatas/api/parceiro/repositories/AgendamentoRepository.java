@@ -8,6 +8,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.redepatas.api.cliente.models.ClientModel;
@@ -26,4 +28,12 @@ public interface AgendamentoRepository extends JpaRepository<AgendamentoModel, U
     Optional<AgendamentoModel> findByIdAndParceiro_IdPartner(UUID id, UUID parceiroId);
 
     List<AgendamentoModel> findAllByHorario_IdAndDataAgendamento(UUID horarioId, LocalDate dataAgendamento);
+
+    @Query("SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END FROM AgendamentoModel a " +
+           "WHERE a.horario.dia.agenda.servico.id = :servicoId " +
+           "AND a.dataAgendamento >= :data " +
+           "AND a.status IN :statuses")
+    boolean existsFuturosPorServico(@Param("servicoId") UUID servicoId,
+                                    @Param("data") LocalDate data,
+                                    @Param("statuses") List<StatusAgendamento> statuses);
 }

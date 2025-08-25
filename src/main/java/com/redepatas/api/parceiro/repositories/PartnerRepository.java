@@ -53,6 +53,7 @@ public interface PartnerRepository extends JpaRepository<PartnerModel, UUID> {
                     AND x.dia_semana = :diaSemana
                     AND s.tipo ILIKE :tipoServico
                     AND (:tamanhoPet <> 'GRANDE' OR s.aceita_pet_grande = TRUE)
+                    AND (s.ativo IS NULL OR s.ativo = TRUE)
             """, nativeQuery = true)
     List<ParceiroBuscaProjecao> findParceirosDisponiveis(
             @Param("cidade") String cidade,

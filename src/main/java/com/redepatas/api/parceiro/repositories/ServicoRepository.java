@@ -19,4 +19,6 @@ public interface ServicoRepository extends JpaRepository<ServicoModel, UUID> {
 
     boolean existsByTipoAndParceiro(TipoServico tipo, PartnerModel parceiro);
 
+    List<ServicoModel> findByParceiroIdPartnerAndAtivoTrue(UUID parceiroId);
+
 }

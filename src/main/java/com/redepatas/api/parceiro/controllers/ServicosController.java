@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -168,6 +169,10 @@ public class ServicosController {
             servicoService.deletarServicoPorParceiro(id, parceiroLogado.getIdPartner());
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
+            String msg = e.getMessage() != null ? e.getMessage() : "";
+            if (msg.contains("agendamentos futuros")) {
+                return ResponseEntity.status(HttpStatus.CONFLICT).body(msg);
+            }
             return ResponseEntity.notFound().build();
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -179,6 +184,46 @@ public class ServicosController {
     public ResponseEntity<List<String>> listarTiposPermitidos() {
         List<String> tipos = servicoService.listarTiposPermitidos();
         return ResponseEntity.ok(tipos);
+    }
+
+    @PatchMapping("/arquivar/{id}")
+    public ResponseEntity<?> arquivarServico(@PathVariable UUID id) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !(authentication.getPrincipal() instanceof PartnerModel)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Acesso negado: usuário não autenticado como parceiro");
+            }
+
+            PartnerModel parceiroLogado = (PartnerModel) authentication.getPrincipal();
+            servicoService.arquivarServico(id, parceiroLogado.getIdPartner());
+            return ResponseEntity.ok("Serviço arquivado com sucesso");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro interno do servidor: " + e.getMessage());
+        }
+    }
+
+    @PatchMapping("/ativar/{id}")
+    public ResponseEntity<?> ativarServico(@PathVariable UUID id) {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication == null || !(authentication.getPrincipal() instanceof PartnerModel)) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body("Acesso negado: usuário não autenticado como parceiro");
+            }
+
+            PartnerModel parceiroLogado = (PartnerModel) authentication.getPrincipal();
+            servicoService.ativarServico(id, parceiroLogado.getIdPartner());
+            return ResponseEntity.ok("Serviço ativado com sucesso");
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Erro interno do servidor: " + e.getMessage());
+        }
     }
 
 }
