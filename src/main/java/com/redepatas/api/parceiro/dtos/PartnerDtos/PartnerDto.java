@@ -5,6 +5,7 @@ import java.util.UUID;
 public record PartnerDto(
     UUID idParceiro,
     UUID idServico,
+    Integer quantidadeHorarios,
     String imageUrl,
     String name,
     String descricao,

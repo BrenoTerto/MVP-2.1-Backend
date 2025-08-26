@@ -7,4 +7,6 @@ public interface HorarioProjecao {
 
     String getHorario_fim();
 
+    Boolean getReservado();
+
 }

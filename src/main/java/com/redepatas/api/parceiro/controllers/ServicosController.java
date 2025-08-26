@@ -27,6 +27,7 @@ import com.redepatas.api.parceiro.dtos.PartnerDtos.BuscarParceirosDisponiveisDTO
 import com.redepatas.api.parceiro.dtos.PartnerDtos.DetalhesServicoDto;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerDto;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.AtualizarServicoDTO;
+import com.redepatas.api.parceiro.dtos.ServicoDtos.BuscarDetalhesDTO;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.CriarServicoDTO;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.ServicoResponseDTO;
 import com.redepatas.api.parceiro.models.PartnerModel;
@@ -57,10 +58,9 @@ public class ServicosController {
         return parceiros;
     }
 
-    @GetMapping("/detalhes/{id}/{diaSemana}")
-    public ResponseEntity<DetalhesServicoDto> buscarDetalhesServico(@PathVariable UUID id,
-            @PathVariable String diaSemana) {
-        return ResponseEntity.ok(servicoService.buscarDetalhesServico(id, diaSemana));
+    @PostMapping("/detalhes")
+    public ResponseEntity<DetalhesServicoDto> buscarDetalhesServico(@Valid @RequestBody BuscarDetalhesDTO dto) {
+        return ResponseEntity.ok(servicoService.buscarDetalhesServico(dto.idServico(), dto.dataAgendamento()));
     }
 
     @PostMapping("/criar")
@@ -110,7 +110,6 @@ public class ServicosController {
     @GetMapping("/{id}")
     public ResponseEntity<?> buscarServicoPorId(@PathVariable UUID id) {
         try {
-            // Obter o parceiro autenticado
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication == null || !(authentication.getPrincipal() instanceof PartnerModel)) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

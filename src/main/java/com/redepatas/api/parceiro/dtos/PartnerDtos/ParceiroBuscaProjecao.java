@@ -9,6 +9,8 @@ public interface ParceiroBuscaProjecao {
 
   UUID getId_servico();
 
+  Integer getQuantidade_horarios();
+
   String getNome_do_parceiro();
 
   String getImagem();

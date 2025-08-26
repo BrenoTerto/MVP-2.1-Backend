@@ -23,7 +23,7 @@ public interface PartnerRepository extends JpaRepository<PartnerModel, UUID> {
     List<PartnerModel> findByEndereco_Cidade(String cidade);
 
     @Query(value = """
-                SELECT DISTINCT
+                SELECT
                     p.id_partner,
                     s.id AS id_servico,
                     p.name AS nome_do_parceiro,
@@ -35,7 +35,8 @@ public interface PartnerRepository extends JpaRepository<PartnerModel, UUID> {
                     ep.rua,
                     s.descricao AS servico_oferecido,
                     s.preco_pequeno,
-                    s.preco_grande
+                    s.preco_grande,
+                    COUNT(ah.id) AS quantidade_horarios
                 FROM
                     partner p
                 INNER JOIN
@@ -53,6 +54,9 @@ public interface PartnerRepository extends JpaRepository<PartnerModel, UUID> {
                     AND x.dia_semana = :diaSemana
                     AND s.tipo ILIKE :tipoServico
                     AND (:tamanhoPet <> 'GRANDE' OR s.aceita_pet_grande = TRUE)
+                GROUP BY
+                    p.id_partner, s.id, p.name, p.image_url, p.avaliacao, p.qtd_avaliacoes,
+                    ep.cidade, ep.estado, ep.bairro, ep.rua, s.descricao, s.preco_pequeno, s.preco_grande
             """, nativeQuery = true)
     List<ParceiroBuscaProjecao> findParceirosDisponiveis(
             @Param("cidade") String cidade,

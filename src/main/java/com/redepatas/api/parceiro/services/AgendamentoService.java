@@ -61,7 +61,7 @@ public class AgendamentoService {
     private SimpMessagingTemplate messagingTemplate;
     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    private DiaSemana mapearDiaSemana(LocalDate data) {
+    public DiaSemana mapearDiaSemana(LocalDate data) {
         switch (data.getDayOfWeek()) {
             case MONDAY:
                 return DiaSemana.SEGUNDA;

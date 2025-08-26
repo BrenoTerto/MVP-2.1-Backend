@@ -6,6 +6,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -70,20 +71,26 @@ public class ServicoService {
     @Autowired
     AdicionaisRepository adicionaisRepository;
 
+    @Autowired 
+    AgendamentoService agendamentoService;
+
     @Autowired
     HorariosRepository horariosRepository;
 
     @Value("${api.key.google.maps}")
     private String API_KEY;
 
-    public DetalhesServicoDto buscarDetalhesServico(UUID id, String diaSemana) {
+    public DetalhesServicoDto buscarDetalhesServico(UUID id, LocalDate dataAgendamento) {
 
         ServicoModel servico = servicoRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Serviço não encontrado"));
 
+        String diaSemana = agendamentoService.mapearDiaSemana(dataAgendamento).toString();
+        System.out.println("DIA DA SEMANA: " + diaSemana);
         List<AdicionalProjecao> adicionais = adicionaisRepository.findAdicionaisByServicoId(id);
-        List<HorarioProjecao> horarios = horariosRepository.findHorariosByServicoId(id, diaSemana);
-
+        System.out.println("TUDO:" + id + " - " + dataAgendamento + " - " + diaSemana);
+        List<HorarioProjecao> horarios = horariosRepository.findHorariosByServicoId(id, diaSemana, dataAgendamento);
+        
         DetalhesServicoDto detalhes = new DetalhesServicoDto(adicionais, horarios);
 
         return detalhes;
@@ -146,6 +153,7 @@ public class ServicoService {
             resultadoFinal.add(new PartnerDto(
                     projecao.getId_partner(),
                     projecao.getId_servico(),
+                    projecao.getQuantidade_horarios(),
                     projecao.getImagem(),
                     projecao.getNome_do_parceiro(),
                     projecao.getServico_oferecido(),
