@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import java.time.LocalDate;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -30,7 +29,6 @@ import com.redepatas.api.parceiro.dtos.PartnerDtos.AdicionalProjecao;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.DetalhesServicoDto;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.DistanceDurationDto;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.EnderecoParteDto;
-import com.redepatas.api.parceiro.dtos.PartnerDtos.HorarioFuncionamentoDto;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.HorarioProjecao;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.ParceiroBuscaProjecao;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerDto;
@@ -74,7 +72,7 @@ public class ServicoService {
     @Autowired
     AdicionaisRepository adicionaisRepository;
 
-    @Autowired 
+    @Autowired
     AgendamentoService agendamentoService;
 
     @Autowired
@@ -96,7 +94,7 @@ public class ServicoService {
         List<AdicionalProjecao> adicionais = adicionaisRepository.findAdicionaisByServicoId(id);
         System.out.println("TUDO:" + id + " - " + dataAgendamento + " - " + diaSemana);
         List<HorarioProjecao> horarios = horariosRepository.findHorariosByServicoId(id, diaSemana, dataAgendamento);
-        
+
         DetalhesServicoDto detalhes = new DetalhesServicoDto(adicionais, horarios);
 
         return detalhes;

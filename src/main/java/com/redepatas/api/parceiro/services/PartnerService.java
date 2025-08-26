@@ -3,8 +3,6 @@ package com.redepatas.api.parceiro.services;
 import com.redepatas.api.cliente.repositories.ClientRepository;
 import com.redepatas.api.cliente.models.ClientRole;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.DistanceDurationDto;
-import com.redepatas.api.parceiro.dtos.PartnerDtos.EnderecoParteDto;
-import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerDto;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerRecordDto;
 
 import com.redepatas.api.parceiro.models.EnderecoPartner;
@@ -191,14 +189,22 @@ public class PartnerService {
                         end.setPartnerModel(partner);
                         partner.setEndereco(end);
                 }
-                if (rua != null) end.setRua(rua);
-                if (bairro != null) end.setBairro(bairro);
-                if (cidade != null) end.setCidade(cidade);
-                if (estado != null) end.setEstado(estado);
-                if (cep != null) end.setCep(cep);
-                if (numero != null) end.setNumero(numero);
-                if (complemento != null) end.setComplemento(complemento);
-                if (lugar != null) end.setLugar(lugar);
+                if (rua != null)
+                        end.setRua(rua);
+                if (bairro != null)
+                        end.setBairro(bairro);
+                if (cidade != null)
+                        end.setCidade(cidade);
+                if (estado != null)
+                        end.setEstado(estado);
+                if (cep != null)
+                        end.setCep(cep);
+                if (numero != null)
+                        end.setNumero(numero);
+                if (complemento != null)
+                        end.setComplemento(complemento);
+                if (lugar != null)
+                        end.setLugar(lugar);
 
                 // save via partner cascade
                 partnerRepository.save(partner);
@@ -288,15 +294,6 @@ public class PartnerService {
                         e.printStackTrace();
                         return Collections.emptyList();
                 }
-        }
-
-        private static String normalizar(String str) {
-                if (str == null)
-                        return null;
-                return java.text.Normalizer.normalize(str, java.text.Normalizer.Form.NFD)
-                                .replaceAll("[\\p{InCombiningDiacriticalMarks}]", "")
-                                .toLowerCase()
-                                .trim();
         }
 
 }

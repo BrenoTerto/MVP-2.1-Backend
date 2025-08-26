@@ -1,21 +1,16 @@
 package com.redepatas.api.parceiro.controllers;
 
 import com.redepatas.api.cliente.dtos.ReponseLoginDto;
-import com.redepatas.api.cliente.dtos.petDtos.NewPetDto;
 import com.redepatas.api.cliente.models.AuthenticationDTO;
 import com.redepatas.api.infra.security.TokenService;
-import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerDto;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerRecordDto;
 import com.redepatas.api.parceiro.models.PartnerModel;
 import com.redepatas.api.parceiro.models.PartnerConfirmationToken;
 import com.redepatas.api.parceiro.repositories.PartnerConfirmationTokenRepository;
 import com.redepatas.api.parceiro.repositories.PartnerRepository;
 import com.redepatas.api.parceiro.services.PartnerService;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.validation.Valid;
-
-import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;

@@ -41,7 +41,6 @@ import com.redepatas.api.parceiro.repositories.AgendamentoRepository;
 import com.redepatas.api.parceiro.repositories.PartnerRepository;
 import com.redepatas.api.parceiro.repositories.ServicoRepository;
 
-
 @Service
 public class AgendamentoService {
 
@@ -119,6 +118,10 @@ public class AgendamentoService {
 
     @Transactional
     public AgendamentoResponseDTO criarAgendamento(CriarAgendamentoDTO dto, UUID clientId) {
+        if (dto.getDataAgendamento().isBefore(LocalDate.now())
+                || dto.getDataAgendamento().isAfter(LocalDate.now().plusDays(15))) {
+            throw new IllegalArgumentException("Data de agendamento deve estar entre hoje e 15 dias no futuro");
+        }
         ServicoModel servico = servicoRepository.findById(dto.getServicoId())
                 .orElseThrow(() -> new IllegalArgumentException("Serviço não encontrado"));
         ClientModel cliente = clientRepository.findById(clientId)

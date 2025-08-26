@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.UUID;
 
 import com.redepatas.api.cliente.models.ClientModel;
-import com.redepatas.api.cliente.models.PetModel;
 import com.redepatas.api.parceiro.models.Enum.StatusAgendamento;
 
 import jakarta.persistence.Column;
@@ -59,7 +58,7 @@ public class AgendamentoModel {
     private StatusAgendamento status;
 
     private Boolean avaliado;
-    
+
     @Enumerated(EnumType.STRING)
     @NotNull(message = "Tipo do serviço é obrigatório")
     private TipoServico servico_tipo;
