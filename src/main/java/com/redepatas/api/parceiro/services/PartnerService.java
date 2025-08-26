@@ -152,7 +152,7 @@ public class PartnerService {
                                         null,
                                         partner);
                         partnerConfirmationTokenRepository.save(confirmationToken);
-                        String link = "https://parceiro.iandev.site/confirmPartnerEmail/" + token;
+                        String link = "https://parceirosrede.iandev.site/confirmPartnerEmail/" + token;
                         try {
                                 emailService.enviarConfirmacao(partner.getEmailContato(), partner.getName(), link);
                         } catch (MessagingException e) {
