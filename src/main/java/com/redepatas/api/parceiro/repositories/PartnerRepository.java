@@ -54,7 +54,8 @@ public interface PartnerRepository extends JpaRepository<PartnerModel, UUID> {
                     AND x.dia_semana = :diaSemana
                     AND s.tipo ILIKE :tipoServico
                     AND (:tamanhoPet <> 'GRANDE' OR s.aceita_pet_grande = TRUE)
-                GROUP BY
+                    AND (s.ativo IS NULL OR s.ativo = TRUE)
+                    GROUP BY
                     p.id_partner, s.id, p.name, p.image_url, p.avaliacao, p.qtd_avaliacoes,
                     ep.cidade, ep.estado, ep.bairro, ep.rua, s.descricao, s.preco_pequeno, s.preco_grande
             """, nativeQuery = true)

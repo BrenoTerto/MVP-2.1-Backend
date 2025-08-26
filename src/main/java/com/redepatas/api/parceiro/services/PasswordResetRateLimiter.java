@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,8 @@ public class PasswordResetRateLimiter {
     private final int dailyEmailMax;
     private final long cooldownSeconds;
     private final int ipHourlySoftMax;
+    private final int ipHourlyHardMax;
+    private final int ipDistinctEmailsHardMax = 40;
 
     public PasswordResetRateLimiter(
             @Value("${security.reset.rateLimit.email.dailyMax:5}") int dailyEmailMax,
@@ -36,6 +39,7 @@ public class PasswordResetRateLimiter {
         this.dailyEmailMax = dailyEmailMax;
         this.cooldownSeconds = cooldownSeconds;
         this.ipHourlySoftMax = ipHourlySoftMax;
+        this.ipHourlyHardMax = ipHourlySoftMax * 4;
     }
 
     /**
@@ -44,7 +48,7 @@ public class PasswordResetRateLimiter {
     public boolean allow(String email, String ip) {
         String normEmail = email == null ? "" : email.trim().toLowerCase();
         boolean emailAllowed = checkEmail(normEmail);
-        boolean ipAllowed = checkIp(ip);
+        boolean ipAllowed = checkIp(ip, normEmail);
         boolean allowed = emailAllowed && ipAllowed;
         if (!allowed) {
             log.warn("Rate limit / cooldown bloqueou envio reset - email='{}' ip='{}' (emailAllowed={}, ipAllowed={})", normEmail, ip, emailAllowed, ipAllowed);
@@ -62,7 +66,7 @@ public class PasswordResetRateLimiter {
             // mesma data
             if (now.getEpochSecond() - existing.lastSent.getEpochSecond() < cooldownSeconds) {
                 existing.cooldownHit = true;
-                return existing; // contador não incrementa em cooldown
+                return existing;
             }
             if (existing.count < dailyEmailMax) {
                 existing.count += 1;
@@ -71,23 +75,35 @@ public class PasswordResetRateLimiter {
             return existing;
         });
         if (entry.day.equals(LocalDate.now())) {
-            if (entry.cooldownHit) return false; // dentro do cooldown
-            return entry.count <= dailyEmailMax; // se excedeu, bloqueia
+            if (entry.cooldownHit) return false;
+            return entry.count <= dailyEmailMax;
         }
         return true;
     }
 
-    private boolean checkIp(String ip) {
+    private boolean checkIp(String ip, String email) {
         if (ip == null) ip = "";
         IpEntry entry = ipMap.compute(ip, (k, existing) -> {
             Instant now = Instant.now();
             if (existing == null || now.getEpochSecond() - existing.windowStart.getEpochSecond() >= 3600) {
-                return new IpEntry(now, 1);
+                IpEntry ne = new IpEntry(now, 1);
+                ne.addEmail(email);
+                return ne;
             }
             existing.count += 1;
+            existing.addEmail(email);
             return existing;
         });
-        return entry.count <= ipHourlySoftMax;
+
+        if (entry.count <= ipHourlySoftMax) return true;
+
+        if (entry.count <= ipHourlyHardMax && entry.getDistinctEmailCount() <= ipDistinctEmailsHardMax) {
+            log.info("Rate limit IP soft excedido ip='{}' count={} distinctEmails={}", ip, entry.count, entry.getDistinctEmailCount());
+            return true;
+        }
+
+        log.warn("Rate limit IP HARD bloqueando ip='{}' count={} distinctEmails={}", ip, entry.count, entry.getDistinctEmailCount());
+        return false;
     }
 
     private static class EmailEntry {
@@ -105,9 +121,17 @@ public class PasswordResetRateLimiter {
     private static class IpEntry {
         final Instant windowStart;
         int count;
+        private final Set<String> distinctEmails = new java.util.HashSet<>();
         IpEntry(Instant windowStart, int count) {
             this.windowStart = windowStart;
             this.count = count;
         }
+        void addEmail(String email) {
+            if (email == null || email.isBlank()) return;
+            if (distinctEmails.size() < 100) { 
+                distinctEmails.add(email);
+            }
+        }
+        int getDistinctEmailCount() { return distinctEmails.size(); }
     }
 }

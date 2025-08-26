@@ -42,6 +42,8 @@ public class PartnerModel implements UserDetails, TokenUser {
     private String emailContato;
     private String numeroContato;
 
+    private boolean emailConfirmado = false;
+
     @Enumerated(EnumType.STRING)
     private TipoPet tipoPet;
 
@@ -86,6 +88,7 @@ public class PartnerModel implements UserDetails, TokenUser {
         this.tipo = tipo;
         this.tipoPet = tipoPet;
         this.descricao = descricao;
+    this.emailConfirmado = false; // garante que novos parceiros precisem confirmar o e-mail
     }
 
     @Override

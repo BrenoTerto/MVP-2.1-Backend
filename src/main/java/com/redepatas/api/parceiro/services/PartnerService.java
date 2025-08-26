@@ -16,6 +16,12 @@ import com.redepatas.api.parceiro.repositories.PartnerRepository;
 import com.redepatas.api.cliente.services.FileService;
 import com.redepatas.api.cliente.services.IS3Service;
 import com.redepatas.api.utils.ValidationUtil;
+import com.redepatas.api.parceiro.models.PartnerConfirmationToken;
+import com.redepatas.api.parceiro.repositories.PartnerConfirmationTokenRepository;
+import com.redepatas.api.cliente.services.EmailService;
+import jakarta.mail.MessagingException;
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -55,6 +61,10 @@ public class PartnerService {
         private FileService fileService;
         @Autowired
         IS3Service is3Service;
+        @Autowired
+        PartnerConfirmationTokenRepository partnerConfirmationTokenRepository;
+        @Autowired
+        EmailService emailService;
         @Value("${api.key.google.maps}")
         private String API_KEY;
 
@@ -131,7 +141,26 @@ public class PartnerService {
                 partner.setEndereco(endereco);
 
                 partnerRepository.save(partner);
-                return "Parceiro cadastrado com sucesso!";
+
+                if (partner.getEmailContato() != null && !partner.getEmailContato().isBlank()) {
+                        String token = UUID.randomUUID().toString();
+                        PartnerConfirmationToken confirmationToken = new PartnerConfirmationToken(
+                                        null,
+                                        token,
+                                        LocalDateTime.now(),
+                                        LocalDateTime.now().plusMinutes(30),
+                                        null,
+                                        partner);
+                        partnerConfirmationTokenRepository.save(confirmationToken);
+                        String link = "https://parceirosrede.iandev.site/confirmPartnerEmail/" + token;
+                        try {
+                                emailService.enviarConfirmacao(partner.getEmailContato(), partner.getName(), link);
+                        } catch (MessagingException e) {
+                                e.printStackTrace();
+                        }
+                }
+
+                return "Parceiro cadastrado com sucesso! Confirme seu e-mail para ativar o login.";
         }
 
         public String updateBasic(String login, String name, String descricao) {

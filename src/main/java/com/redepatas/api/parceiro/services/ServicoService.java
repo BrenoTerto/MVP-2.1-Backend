@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.time.LocalDate;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -24,6 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.redepatas.api.cliente.models.ClientModel;
 import com.redepatas.api.cliente.repositories.ClientRepository;
+import com.redepatas.api.parceiro.models.Enum.StatusAgendamento;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.AdicionalProjecao;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.DetalhesServicoDto;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.DistanceDurationDto;
@@ -55,6 +57,7 @@ import com.redepatas.api.parceiro.repositories.AdicionaisRepository;
 import com.redepatas.api.parceiro.repositories.HorariosRepository;
 import com.redepatas.api.parceiro.repositories.PartnerRepository;
 import com.redepatas.api.parceiro.repositories.ServicoRepository;
+import com.redepatas.api.parceiro.repositories.AgendamentoRepository;
 
 @Service
 public class ServicoService {
@@ -76,6 +79,9 @@ public class ServicoService {
 
     @Autowired
     HorariosRepository horariosRepository;
+
+    @Autowired
+    private AgendamentoRepository agendamentoRepository;
 
     @Value("${api.key.google.maps}")
     private String API_KEY;
@@ -257,7 +263,13 @@ public class ServicoService {
         if (!servico.getParceiro().getIdPartner().equals(parceiroId)) {
             throw new IllegalArgumentException("Você não tem permissão para deletar este serviço");
         }
-
+        boolean temAgendamentosFuturos = agendamentoRepository.existsFuturosPorServico(
+                servicoId,
+                LocalDate.now(),
+                List.of(StatusAgendamento.PENDENTE, StatusAgendamento.CONFIRMADO));
+        if (temAgendamentosFuturos) {
+            throw new IllegalArgumentException("Serviço possui agendamentos futuros; não pode ser excluído");
+        }
         servicoRepository.deleteById(servicoId);
     }
 
@@ -488,6 +500,38 @@ public class ServicoService {
         dto.setHorarioInicio(horario.getHorarioInicio());
         dto.setHorarioFim(horario.getHorarioFim());
         return dto;
+    }
+
+    public void arquivarServico(UUID servicoId, UUID parceiroId) {
+        Optional<ServicoModel> servicoOpt = servicoRepository.findById(servicoId);
+        if (servicoOpt.isEmpty()) {
+            throw new IllegalArgumentException("Serviço não encontrado com ID: " + servicoId);
+        }
+        ServicoModel servico = servicoOpt.get();
+        if (!servico.getParceiro().getIdPartner().equals(parceiroId)) {
+            throw new IllegalArgumentException("Você não tem permissão para arquivar este serviço");
+        }
+        if (Boolean.FALSE.equals(servico.getAtivo())) {
+            return;
+        }
+        servico.setAtivo(false);
+        servicoRepository.save(servico);
+    }
+
+    public void ativarServico(UUID servicoId, UUID parceiroId) {
+        Optional<ServicoModel> servicoOpt = servicoRepository.findById(servicoId);
+        if (servicoOpt.isEmpty()) {
+            throw new IllegalArgumentException("Serviço não encontrado com ID: " + servicoId);
+        }
+        ServicoModel servico = servicoOpt.get();
+        if (!servico.getParceiro().getIdPartner().equals(parceiroId)) {
+            throw new IllegalArgumentException("Você não tem permissão para ativar este serviço");
+        }
+        if (Boolean.TRUE.equals(servico.getAtivo())) {
+            return;
+        }
+        servico.setAtivo(true);
+        servicoRepository.save(servico);
     }
 
 }
