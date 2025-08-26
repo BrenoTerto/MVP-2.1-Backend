@@ -76,6 +76,7 @@ public class SecurityConfiguration {
                         // Rotas públicas dos parceiros
                         .requestMatchers(HttpMethod.POST, "/partners/create").permitAll()
                         .requestMatchers(HttpMethod.POST, "/partners/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/partners/confirm").permitAll()
                         .requestMatchers(HttpMethod.POST, "/partners/password/reset-request").permitAll()
                         .requestMatchers(HttpMethod.POST, "/partners/password/reset-confirm").permitAll()
                         .requestMatchers(HttpMethod.POST, "/partners/getAll").permitAll()

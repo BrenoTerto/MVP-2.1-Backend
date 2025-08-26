@@ -7,6 +7,9 @@ import com.redepatas.api.infra.security.TokenService;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerDto;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerRecordDto;
 import com.redepatas.api.parceiro.models.PartnerModel;
+import com.redepatas.api.parceiro.models.PartnerConfirmationToken;
+import com.redepatas.api.parceiro.repositories.PartnerConfirmationTokenRepository;
+import com.redepatas.api.parceiro.repositories.PartnerRepository;
 import com.redepatas.api.parceiro.services.PartnerService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -43,6 +46,12 @@ public class PartnerController {
     @Autowired
     private TokenService tokenService;
 
+    @Autowired
+    private PartnerConfirmationTokenRepository partnerConfirmationTokenRepository;
+
+    @Autowired
+    private PartnerRepository partnerRepository;
+
     @PostMapping("/create")
     public ResponseEntity<String> createPartner(
             @RequestPart(value = "partnerData", required = false) @Validated PartnerRecordDto partnerDataJson,
@@ -67,10 +76,9 @@ public class PartnerController {
 
             PartnerModel partner = (PartnerModel) auth.getPrincipal();
 
-            // if (!partner.isEmailConfirmado()) {
-            // throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cadastro não
-            // confirmado!");
-            // }
+            if (!partner.isEmailConfirmado()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cadastro não confirmado!");
+            }
 
             var token = tokenService.generateToken(partner);
             return ResponseEntity.ok(new ReponseLoginDto(token));
@@ -80,6 +88,27 @@ public class PartnerController {
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno no servidor.");
         }
+    }
+
+    @GetMapping("/confirm")
+    public ResponseEntity<String> confirm(@RequestParam("token") String token) {
+        var optional = partnerConfirmationTokenRepository.findByToken(token);
+        if (optional.isEmpty()) {
+            return ResponseEntity.badRequest().body("Token inválido ou não encontrado.");
+        }
+        PartnerConfirmationToken confirmationToken = optional.get();
+        if (confirmationToken.getConfirmedAt() != null) {
+            return ResponseEntity.badRequest().body("Conta já confirmada.");
+        }
+        if (confirmationToken.getExpiresAt().isBefore(java.time.LocalDateTime.now())) {
+            return ResponseEntity.badRequest().body("Token expirado.");
+        }
+        PartnerModel partner = confirmationToken.getPartner();
+        partner.setEmailConfirmado(true);
+        confirmationToken.setConfirmedAt(java.time.LocalDateTime.now());
+        partnerConfirmationTokenRepository.save(confirmationToken);
+        partnerRepository.save(partner);
+        return ResponseEntity.ok("Cadastro de parceiro confirmado com sucesso!");
     }
 
     // @PostMapping("/getServices")
