@@ -27,6 +27,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.AtualizarParceiroBasicDTO;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.AtualizarEnderecoPartnerDTO;
 import com.redepatas.api.cliente.dtos.ChangePasswordDto;
+import com.redepatas.api.parceiro.services.PasswordResetRateLimiter;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/partners")
@@ -46,6 +48,8 @@ public class PartnerController {
 
     @Autowired
     private PartnerRepository partnerRepository;
+    @Autowired
+    private PasswordResetRateLimiter rateLimiter;
 
     @PostMapping("/create")
     public ResponseEntity<String> createPartner(
@@ -106,6 +110,16 @@ public class PartnerController {
         return ResponseEntity.ok("Cadastro de parceiro confirmado com sucesso!");
     }
 
+    @PostMapping("/resendConfirmation/{email}")
+    public ResponseEntity<Void> resendConfirmation(@PathVariable("email") String email, HttpServletRequest request) {
+        String ip = extractClientIp(request);
+        boolean allowed = rateLimiter.allow(email, ip);
+        if (allowed) {
+            partnerService.resendConfirmationEmail(email);
+        }
+        return ResponseEntity.noContent().build();
+    }
+
     // @PostMapping("/getServices")
     // public ResponseEntity<PartenerServicesDto> getPartnerService(
     // @RequestBody @Valid GetPartnerServiceDto dto) {
@@ -140,5 +154,12 @@ public class PartnerController {
         String login = userDetails.getUsername();
         String resp = partnerService.changePassword(login, dto.oldPassword(), dto.newPassword(), authenticationManager);
         return ResponseEntity.ok(resp);
+    }
+    private String extractClientIp(HttpServletRequest request) {
+        String header = request.getHeader("X-Forwarded-For");
+        if (header != null && !header.isBlank()) {
+            return header.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }

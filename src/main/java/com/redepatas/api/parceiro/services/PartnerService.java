@@ -230,6 +230,34 @@ public class PartnerService {
                 return "Senha alterada com sucesso";
         }
 
+        public void resendConfirmationEmail(String emailContato) {
+                if (emailContato == null || emailContato.isBlank()) {
+                        return;
+                }
+
+                PartnerModel partner = partnerRepository.findByEmailContato(emailContato);
+                if (partner == null || partner.isEmailConfirmado()) {
+                        return;
+                }
+
+                String token = UUID.randomUUID().toString();
+                PartnerConfirmationToken confirmationToken = new PartnerConfirmationToken(
+                                null,
+                                token,
+                                LocalDateTime.now(),
+                                LocalDateTime.now().plusMinutes(30),
+                                null,
+                                partner);
+                partnerConfirmationTokenRepository.save(confirmationToken);
+
+                String link = "https://parceirosrede.iandev.site/confirmPartnerEmail/" + token;
+                try {
+                        emailService.enviarConfirmacao(partner.getEmailContato(), partner.getName(), link);
+                } catch (MessagingException e) {
+                        e.printStackTrace();
+                }
+        }
+
         private static DiaSemana converterDayOfWeekParaDiaSemana(java.time.DayOfWeek dayOfWeek) {
                 return switch (dayOfWeek) {
                         case MONDAY -> DiaSemana.SEGUNDA;
