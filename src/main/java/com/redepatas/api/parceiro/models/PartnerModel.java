@@ -6,6 +6,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
@@ -53,15 +54,11 @@ public class PartnerModel implements UserDetails, TokenUser {
     @Enumerated(EnumType.STRING)
     private TipoPartner tipo;
 
-    // @OneToMany(mappedBy = "partner", cascade = CascadeType.ALL, orphanRemoval =
-    // true)
-    // private List<Servico> servicos;
-
-    // @OneToMany(mappedBy = "partner", cascade = CascadeType.ALL, orphanRemoval =
-    // true)
-    // private List<HorarioFuncionamentoModel> horariosFuncionamento;
-
     private String descricao;
+
+    private LocalDate dataCriacao = LocalDate.now();
+
+    private Boolean contaVerificada = false;
 
     public PartnerModel(
             String login,
@@ -88,7 +85,7 @@ public class PartnerModel implements UserDetails, TokenUser {
         this.tipo = tipo;
         this.tipoPet = tipoPet;
         this.descricao = descricao;
-    this.emailConfirmado = false; // garante que novos parceiros precisem confirmar o e-mail
+        this.emailConfirmado = false; // garante que novos parceiros precisem confirmar o e-mail
     }
 
     @Override
