@@ -1,6 +1,5 @@
 package com.redepatas.api.infra.security;
 
-import com.redepatas.api.repositories.ClientRepository;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -13,6 +12,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import com.redepatas.api.cliente.repositories.ClientRepository;
+import com.redepatas.api.parceiro.repositories.PartnerRepository;
+
 import java.io.IOException;
 
 @Component
@@ -21,6 +23,8 @@ public class SecurityFilter extends OncePerRequestFilter {
     TokenService tokenService;
     @Autowired
     ClientRepository userRepository;
+    @Autowired
+    PartnerRepository partnerRepository;
 
     @Override
     protected void doFilterInternal(
@@ -32,7 +36,14 @@ public class SecurityFilter extends OncePerRequestFilter {
         if (token != null) {
             var login = tokenService.validateToken(token);
             if (login != null) {
+                // Tentar encontrar primeiro como cliente
                 UserDetails user = userRepository.findByLogin(login);
+                
+                // Se não encontrou como cliente, tentar como parceiro
+                if (user == null) {
+                    user = partnerRepository.findByLogin(login);
+                }
+                
                 if (user != null) {
                     var authentication = new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
                     SecurityContextHolder.getContext().setAuthentication(authentication);

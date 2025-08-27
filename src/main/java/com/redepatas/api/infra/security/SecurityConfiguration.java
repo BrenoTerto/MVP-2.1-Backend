@@ -32,13 +32,19 @@ public class SecurityConfiguration {
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers("/v3/api-docs/**").permitAll()
+                        .requestMatchers("/swagger-ui.html").permitAll()
+                        .requestMatchers("/swagger-ui/**").permitAll()
                         .requestMatchers("/auth/**").permitAll()
-                        // .requestMatchers(HttpMethod.POST, "/pets/newPet/{userId}").hasRole("USER")
-                        // .requestMatchers(HttpMethod.GET, "/pets/petsByClient/").hasRole("USER")
-                        // .requestMatchers(HttpMethod.DELETE, "/pets/deletePet/{id}").hasRole("USER")
-                        // .requestMatchers(HttpMethod.PUT, "/pets/updatePet/{id}").hasRole("USER")
-                        // .requestMatchers(HttpMethod.POST, "/pets/addVacina/{petId}").hasRole("USER")
-                        // .requestMatchers(HttpMethod.DELETE, "/pets/deleteVacina/").hasRole("USER")
+                        .requestMatchers("/ws/**").permitAll()
+                        .requestMatchers("/enviar-aviso").permitAll()
+                        .requestMatchers("/servicos/**").permitAll() // TODO: Restringir acesso ao PARTNER
+                        .requestMatchers(HttpMethod.POST, "/pets/newPet/{userId}").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/pets/petsByClient/").hasRole("USER")
+                        .requestMatchers(HttpMethod.DELETE, "/pets/deletePet/{id}").hasRole("USER")
+                        .requestMatchers(HttpMethod.PUT, "/pets/updatePet/{id}").hasRole("USER")
+                        .requestMatchers(HttpMethod.POST, "/pets/addVacina/{petId}").hasRole("USER")
+                        .requestMatchers(HttpMethod.DELETE, "/pets/deleteVacina/").hasRole("USER")
 
                         // .requestMatchers(HttpMethod.PUT, "/users/updateProfile").hasRole("USER")
                         // .requestMatchers(HttpMethod.PUT, "/auth/changePassword").hasRole("USER")
@@ -69,11 +75,20 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET, "/assinaturas/myPlan").hasRole("USER")
                         .requestMatchers("/assinaturas/**").permitAll()
 
-                        // .requestMatchers(HttpMethod.POST, "/partners/getAll").hasRole("USER")
-                        // .requestMatchers(HttpMethod.POST, "/partners/getServices")
-                        // .hasRole("USER")
-                        .requestMatchers("/partners/**").permitAll()
+                        // Parceiro - rotas autenticadas
+                        .requestMatchers(HttpMethod.PUT, "/partners/me/basic").hasRole("PARTNER")
+                        .requestMatchers(HttpMethod.PUT, "/partners/me/address").hasRole("PARTNER")
+                        .requestMatchers(HttpMethod.PUT, "/partners/me/security/password").hasRole("PARTNER")
 
+                        // Rotas públicas dos parceiros
+                        .requestMatchers(HttpMethod.POST, "/partners/create").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/partners/login").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/partners/confirm").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/partners/password/reset-request").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/partners/password/reset-confirm").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/partners/getAll").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/partners/getServices").hasRole("USER")
+                        .requestMatchers("/parceiros/**").permitAll()
                         .requestMatchers("/files/**").permitAll() // AUTENTICAR EM BREVE
                         .requestMatchers("/webhook/**").permitAll() // ADICIONAR
 
