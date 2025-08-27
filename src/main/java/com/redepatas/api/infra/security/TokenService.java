@@ -45,7 +45,6 @@ public class TokenService {
         }
     }
 
-    // Método de sobrecarga para manter compatibilidade com ClientModel
     public String generateToken(ClientModel user) {
         return generateToken((TokenUser) user);
     }
@@ -104,6 +103,6 @@ public class TokenService {
     }
 
     private Instant genereteExperiatiopnDate() {
-        return LocalDateTime.now().plusHours(2).toInstant(ZoneOffset.of("-03:00"));
+        return LocalDateTime.now().plusHours(25).toInstant(ZoneOffset.of("-03:00"));
     }
 }
