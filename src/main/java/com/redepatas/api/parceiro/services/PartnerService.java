@@ -3,6 +3,7 @@ package com.redepatas.api.parceiro.services;
 import com.redepatas.api.cliente.repositories.ClientRepository;
 import com.redepatas.api.cliente.models.ClientRole;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.DistanceDurationDto;
+import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerProfileDto;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerRecordDto;
 
 import com.redepatas.api.parceiro.models.EnderecoPartner;
@@ -228,6 +229,48 @@ public class PartnerService {
                 partner.setPassword(encryptedPassword);
                 partnerRepository.save(partner);
                 return "Senha alterada com sucesso";
+        }
+
+        public PartnerProfileDto getProfile(String login) {
+                var partner = partnerRepository.findByLogin(login);
+                if (partner == null) {
+                        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Parceiro nǜo encontrado");
+                }
+                return new PartnerProfileDto(
+                                partner.getIdPartner(),
+                                partner.getName(),
+                                partner.getImageUrl(),
+                                partner.getEmailContato(),
+                                partner.getNumeroContato(),
+                                partner.getDescricao());
+        }
+        
+        public void resendConfirmationEmail(String emailContato) {
+                if (emailContato == null || emailContato.isBlank()) {
+                        return;
+                }
+
+                PartnerModel partner = partnerRepository.findByEmailContato(emailContato);
+                if (partner == null || partner.isEmailConfirmado()) {
+                        return;
+                }
+
+                String token = UUID.randomUUID().toString();
+                PartnerConfirmationToken confirmationToken = new PartnerConfirmationToken(
+                                null,
+                                token,
+                                LocalDateTime.now(),
+                                LocalDateTime.now().plusMinutes(30),
+                                null,
+                                partner);
+                partnerConfirmationTokenRepository.save(confirmationToken);
+
+                String link = "https://parceirosrede.iandev.site/confirmPartnerEmail/" + token;
+                try {
+                        emailService.enviarConfirmacao(partner.getEmailContato(), partner.getName(), link);
+                } catch (MessagingException e) {
+                        e.printStackTrace();
+                }
         }
 
         private static DiaSemana converterDayOfWeekParaDiaSemana(java.time.DayOfWeek dayOfWeek) {

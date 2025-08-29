@@ -77,6 +77,7 @@ public class SecurityConfiguration {
 
                         // Parceiro - rotas autenticadas
                         .requestMatchers(HttpMethod.PUT, "/partners/me/basic").hasRole("PARTNER")
+                        .requestMatchers(HttpMethod.GET, "/partners/me").hasRole("PARTNER")
                         .requestMatchers(HttpMethod.PUT, "/partners/me/address").hasRole("PARTNER")
                         .requestMatchers(HttpMethod.PUT, "/partners/me/security/password").hasRole("PARTNER")
 
@@ -84,6 +85,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.POST, "/partners/create").permitAll()
                         .requestMatchers(HttpMethod.POST, "/partners/login").permitAll()
                         .requestMatchers(HttpMethod.GET, "/partners/confirm").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/partners/resendConfirmation/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/partners/password/reset-request").permitAll()
                         .requestMatchers(HttpMethod.POST, "/partners/password/reset-confirm").permitAll()
                         .requestMatchers(HttpMethod.POST, "/partners/getAll").permitAll()

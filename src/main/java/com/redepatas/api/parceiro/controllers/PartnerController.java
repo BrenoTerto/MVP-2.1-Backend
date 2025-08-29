@@ -4,6 +4,7 @@ import com.redepatas.api.cliente.dtos.ReponseLoginDto;
 import com.redepatas.api.cliente.models.AuthenticationDTO;
 import com.redepatas.api.infra.security.TokenService;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerRecordDto;
+import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerProfileDto;
 import com.redepatas.api.parceiro.models.PartnerModel;
 import com.redepatas.api.parceiro.models.PartnerConfirmationToken;
 import com.redepatas.api.parceiro.repositories.PartnerConfirmationTokenRepository;
@@ -23,10 +24,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.AuthenticationException;
 
 import com.redepatas.api.parceiro.dtos.PartnerDtos.AtualizarParceiroBasicDTO;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.AtualizarEnderecoPartnerDTO;
 import com.redepatas.api.cliente.dtos.ChangePasswordDto;
+import com.redepatas.api.parceiro.services.PasswordResetRateLimiter;
+import jakarta.servlet.http.HttpServletRequest;
 
 @RestController
 @RequestMapping("/partners")
@@ -46,6 +50,8 @@ public class PartnerController {
 
     @Autowired
     private PartnerRepository partnerRepository;
+    @Autowired
+    private PasswordResetRateLimiter rateLimiter;
 
     @PostMapping("/create")
     public ResponseEntity<String> createPartner(
@@ -78,7 +84,7 @@ public class PartnerController {
             var token = tokenService.generateToken(partner);
             return ResponseEntity.ok(new ReponseLoginDto(token));
 
-        } catch (org.springframework.security.core.AuthenticationException e) {
+        } catch (AuthenticationException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas!");
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno no servidor.");
@@ -106,6 +112,16 @@ public class PartnerController {
         return ResponseEntity.ok("Cadastro de parceiro confirmado com sucesso!");
     }
 
+    @PostMapping("/resendConfirmation/{email}")
+    public ResponseEntity<Void> resendConfirmation(@PathVariable("email") String email, HttpServletRequest request) {
+        String ip = extractClientIp(request);
+        boolean allowed = rateLimiter.allow(email, ip);
+        if (allowed) {
+            partnerService.resendConfirmationEmail(email);
+        }
+        return ResponseEntity.noContent().build();
+    }
+
     // @PostMapping("/getServices")
     // public ResponseEntity<PartenerServicesDto> getPartnerService(
     // @RequestBody @Valid GetPartnerServiceDto dto) {
@@ -121,6 +137,13 @@ public class PartnerController {
         String login = userDetails.getUsername();
         String resp = partnerService.updateBasic(login, dto.name(), dto.descricao());
         return ResponseEntity.ok(resp);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<PartnerProfileDto> getMe(@AuthenticationPrincipal UserDetails userDetails) {
+        String login = userDetails.getUsername();
+        PartnerProfileDto profile = partnerService.getProfile(login);
+        return ResponseEntity.ok(profile);
     }
 
     @PutMapping("/me/address")
@@ -140,5 +163,12 @@ public class PartnerController {
         String login = userDetails.getUsername();
         String resp = partnerService.changePassword(login, dto.oldPassword(), dto.newPassword(), authenticationManager);
         return ResponseEntity.ok(resp);
+    }
+    private String extractClientIp(HttpServletRequest request) {
+        String header = request.getHeader("X-Forwarded-For");
+        if (header != null && !header.isBlank()) {
+            return header.split(",")[0].trim();
+        }
+        return request.getRemoteAddr();
     }
 }
