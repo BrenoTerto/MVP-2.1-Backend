@@ -60,7 +60,6 @@ public class ClientModel implements UserDetails, TokenUser {
     private String idCustomer;
     @Column(nullable = false)
     private boolean emailConfirmado = false;
-    private LocalDate dataCriacao = LocalDate.now();
 
     public ClientModel(String login, String encryptedPassword, String email, String numero, String name,
             ClientRole role, String CPF) {

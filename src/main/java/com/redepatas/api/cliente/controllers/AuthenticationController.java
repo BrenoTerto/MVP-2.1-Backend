@@ -15,6 +15,7 @@ import com.redepatas.api.cliente.repositories.ClientRepository;
 import com.redepatas.api.cliente.repositories.ConfirmationTokenRepository;
 import com.redepatas.api.cliente.repositories.PasswordResetTokenRepository;
 import com.redepatas.api.cliente.services.AsaasClientService;
+import com.redepatas.api.cliente.services.AssinaturaServices;
 import com.redepatas.api.cliente.services.EmailService;
 import com.redepatas.api.cliente.services.UserServices;
 import com.redepatas.api.infra.security.TokenService;
@@ -73,6 +74,9 @@ public class AuthenticationController {
 
     @Autowired
     EmailService emailService;
+
+    @Autowired
+    private AssinaturaServices assinaturaService;
 
     @PostMapping("/login")
     public ResponseEntity<ReponseLoginDto> login(@RequestBody @Valid AuthenticationDTO data) {
@@ -133,7 +137,7 @@ public class AuthenticationController {
                     null,
                     newUser);
 
-            String link = "https://beta.redepatas.com/confirmEmail/" + token;
+            String link = "https://cliente.redepatas.com.br/confirmEmail/" + token;
             emailService.enviarConfirmacao(data.email(), data.name(), link);
             tokenRepository.save(confirmationToken);
 
@@ -145,50 +149,6 @@ public class AuthenticationController {
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Erro interno no servidor.");
         }
-    }
-
-    @GetMapping("/confirmEmail/{token}")
-    public ResponseEntity<String> confirmEmail(@PathVariable String token) {
-        Optional<ConfirmationToken> optionalToken = tokenRepository.findByToken(token);
-
-        if (optionalToken.isEmpty()) {
-            return ResponseEntity.badRequest().body("Token inválido ou não encontrado.");
-        }
-
-        ConfirmationToken confirmationToken = optionalToken.get();
-        ClientModel user = confirmationToken.getUser();
-
-        if (confirmationToken.getConfirmedAt() != null) {
-            return ResponseEntity.ok(user.getLogin());
-        }
-
-        if (confirmationToken.getExpiresAt().isBefore(LocalDateTime.now())) {
-            return ResponseEntity.badRequest().body("Token expirado.");
-        }
-
-        String idCustomer;
-        String clienteResponse = asaasClientService.criarCliente(user.getName(), user.getCPF(), user.getEmail(),
-                user.getPhoneNumber());
-
-        if (clienteResponse == null || clienteResponse.contains("erro")) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Erro ao criar cliente asaas, Erro: " + clienteResponse);
-        }
-
-        try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode rootNode = objectMapper.readTree(clienteResponse);
-            idCustomer = rootNode.get("id").asText();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body("Erro ao processar resposta do Asaas: " + e.getMessage());
-        }
-        user.setIdCustomer(idCustomer);
-        confirmationToken.setConfirmedAt(LocalDateTime.now());
-        tokenRepository.save(confirmationToken);
-        user.setEmailConfirmado(true);
-        repository.save(user);
-        return ResponseEntity.ok(user.getLogin());
     }
 
     @GetMapping("/confirm")
@@ -230,8 +190,10 @@ public class AuthenticationController {
         confirmationToken.setConfirmedAt(LocalDateTime.now());
         tokenRepository.save(confirmationToken);
         user.setEmailConfirmado(true);
+        Long plano = (long) 1;
         repository.save(user);
-        return ResponseEntity.ok("Cadastro confirmado com sucesso!");
+        String assinaturaResponse = assinaturaService.criarAssinatura(user.getLogin(), plano);
+        return ResponseEntity.ok(assinaturaResponse);
     }
 
     @PutMapping("/changePassword")
@@ -254,7 +216,7 @@ public class AuthenticationController {
                 emailService.enviarRecovery(clientModel.getEmail(), token);
             }
         }
-        
+
         return ResponseEntity.noContent().build();
     }
 

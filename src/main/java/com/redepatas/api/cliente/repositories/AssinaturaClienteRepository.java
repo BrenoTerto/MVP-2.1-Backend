@@ -11,4 +11,5 @@ import com.redepatas.api.cliente.controllers.AssinaturaClienteModel;
 public interface AssinaturaClienteRepository extends JpaRepository<AssinaturaClienteModel, UUID> {
   AssinaturaClienteModel findByIdAsaas(String idSub);
 
+  AssinaturaClienteModel findByCliente_IdUser(UUID idUser);
 }

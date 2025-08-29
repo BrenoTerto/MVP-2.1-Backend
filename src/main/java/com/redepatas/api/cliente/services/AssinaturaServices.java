@@ -73,6 +73,15 @@ public class AssinaturaServices {
     public String iniciarAssinatura(ClientModel client, Long planoId) {
         PlanoAssinatura plano = planoAssinaturaRepository.findById(planoId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Plano não encontrado"));
+        AssinaturaClienteModel assinaturaExistente = assinaturaClienteRepository
+                .findByCliente_IdUser(client.getIdUser());
+        if (assinaturaExistente != null) {
+            if (assinaturaExistente.getStatusAssinatura() == StatusAssinatura.PENDENTE) {
+                return asaasClientService.getLink(assinaturaExistente.getIdAsaas());
+            } else if (assinaturaExistente.getStatusAssinatura() == StatusAssinatura.ATIVA) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O cliente já possuí assinatura ativa");
+            }
+        }
 
         AssinaturaClienteModel assinatura = new AssinaturaClienteModel();
         assinatura.setCliente(client);
@@ -105,7 +114,7 @@ public class AssinaturaServices {
         assinatura.setIdAsaas(idAsaasAssinatura);
         assinaturaClienteRepository.save(assinatura);
 
-        return "Assinatura criada com sucesso!";
+        return asaasClientService.getLink(idAsaasAssinatura);
     }
 
 }
