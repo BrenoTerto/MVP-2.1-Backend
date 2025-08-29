@@ -4,6 +4,7 @@ import com.redepatas.api.cliente.dtos.ReponseLoginDto;
 import com.redepatas.api.cliente.models.AuthenticationDTO;
 import com.redepatas.api.infra.security.TokenService;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerRecordDto;
+import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerProfileDto;
 import com.redepatas.api.parceiro.models.PartnerModel;
 import com.redepatas.api.parceiro.models.PartnerConfirmationToken;
 import com.redepatas.api.parceiro.repositories.PartnerConfirmationTokenRepository;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.AuthenticationException;
 
 import com.redepatas.api.parceiro.dtos.PartnerDtos.AtualizarParceiroBasicDTO;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.AtualizarEnderecoPartnerDTO;
@@ -78,7 +80,7 @@ public class PartnerController {
             var token = tokenService.generateToken(partner);
             return ResponseEntity.ok(new ReponseLoginDto(token));
 
-        } catch (org.springframework.security.core.AuthenticationException e) {
+        } catch (AuthenticationException e) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais inválidas!");
         } catch (Exception e) {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno no servidor.");
@@ -121,6 +123,13 @@ public class PartnerController {
         String login = userDetails.getUsername();
         String resp = partnerService.updateBasic(login, dto.name(), dto.descricao());
         return ResponseEntity.ok(resp);
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<PartnerProfileDto> getMe(@AuthenticationPrincipal UserDetails userDetails) {
+        String login = userDetails.getUsername();
+        PartnerProfileDto profile = partnerService.getProfile(login);
+        return ResponseEntity.ok(profile);
     }
 
     @PutMapping("/me/address")

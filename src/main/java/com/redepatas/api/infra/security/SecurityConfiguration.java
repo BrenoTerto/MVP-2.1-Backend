@@ -77,6 +77,7 @@ public class SecurityConfiguration {
 
                         // Parceiro - rotas autenticadas
                         .requestMatchers(HttpMethod.PUT, "/partners/me/basic").hasRole("PARTNER")
+                        .requestMatchers(HttpMethod.GET, "/partners/me").hasRole("PARTNER")
                         .requestMatchers(HttpMethod.PUT, "/partners/me/address").hasRole("PARTNER")
                         .requestMatchers(HttpMethod.PUT, "/partners/me/security/password").hasRole("PARTNER")
 

@@ -3,6 +3,7 @@ package com.redepatas.api.parceiro.services;
 import com.redepatas.api.cliente.repositories.ClientRepository;
 import com.redepatas.api.cliente.models.ClientRole;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.DistanceDurationDto;
+import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerProfileDto;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerRecordDto;
 
 import com.redepatas.api.parceiro.models.EnderecoPartner;
@@ -228,6 +229,20 @@ public class PartnerService {
                 partner.setPassword(encryptedPassword);
                 partnerRepository.save(partner);
                 return "Senha alterada com sucesso";
+        }
+
+        public PartnerProfileDto getProfile(String login) {
+                var partner = partnerRepository.findByLogin(login);
+                if (partner == null) {
+                        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Parceiro nǜo encontrado");
+                }
+                return new PartnerProfileDto(
+                                partner.getIdPartner(),
+                                partner.getName(),
+                                partner.getImageUrl(),
+                                partner.getEmailContato(),
+                                partner.getNumeroContato(),
+                                partner.getDescricao());
         }
 
         private static DiaSemana converterDayOfWeekParaDiaSemana(java.time.DayOfWeek dayOfWeek) {
