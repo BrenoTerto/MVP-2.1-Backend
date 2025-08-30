@@ -3,6 +3,11 @@ package com.redepatas.api.parceiro.models;
 import java.util.UUID;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 @Entity
@@ -16,22 +21,45 @@ public class EnderecoPartner {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID idEndereco;
 
+    @NotBlank(message = "O nome da rua é obrigatório.")
+    @Size(max = 255, message = "O nome da rua deve ter no máximo 255 caracteres.")
     private String rua;
+
+    @NotBlank(message = "O nome da cidade é obrigatório.")
+    @Size(max = 100, message = "O nome da cidade deve ter no máximo 100 caracteres.")
     private String cidade;
+
+    @NotBlank(message = "O estado é obrigatório.")
+    @Size(min = 2, max = 2, message = "O estado deve ter exatamente 2 caracteres.")
     private String estado;
+
+    @NotBlank(message = "O nome do bairro é obrigatório.")
+    @Size(max = 100, message = "O nome do bairro deve ter no máximo 100 caracteres.")
     private String bairro;
+
+    @NotBlank(message = "O CEP é obrigatório.")
+    @Pattern(regexp = "\\d{5}-\\d{3}", message = "Formato de CEP inválido. Use XXXXX-XXX.")
     private String cep;
+
+    @Size(max = 255, message = "O complemento deve ter no máximo 255 caracteres.")
     private String complemento;
+
+    @NotNull(message = "O número é obrigatório.")
+    @Positive(message = "O número deve ser um valor positivo.")
     private Integer numero;
+
+    @Size(max = 100, message = "O campo 'lugar' deve ter no máximo 100 caracteres.")
     private String lugar;
 
+    @NotNull(message = "A associação com o parceiro é obrigatória.")
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_partner", nullable = false)
     private PartnerModel partnerModel;
 
+
     public EnderecoPartner(String rua, String bairro, String cidade, String estado, String cep, Integer numero,
-            String complemento,
-            String lugar) {
+                           String complemento,
+                           String lugar) {
         this.rua = rua;
         this.bairro = bairro;
         this.cidade = cidade;
