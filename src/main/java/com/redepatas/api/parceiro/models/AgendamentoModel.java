@@ -36,8 +36,19 @@ public class AgendamentoModel {
     private UUID id;
 
     @NotNull
+    @Column(name = "preco_bruto", nullable = false)
+    private Double precoBruto;
+
+    @NotNull
     @Column(name = "preco_final", nullable = false)
     private Double precoFinal;
+
+    @NotNull
+    @Column(name = "desconto", nullable = false)
+    private Double desconto;
+
+    @Column(name = "motivo_desconto")
+    private String motivoDesconto;
 
     @NotNull
     @Column(name = "data_criacao_agendamento", nullable = false)

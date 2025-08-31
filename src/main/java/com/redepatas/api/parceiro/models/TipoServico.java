@@ -3,8 +3,19 @@ package com.redepatas.api.parceiro.models;
 public enum TipoServico {
     BANHO("Banho"),
     TOSA("Tosa"),
-    TOSA_HIGIENICA("Tosa_Higienica"),
-    CONSULTA("Consulta");
+    TOSA_HIGIENICA("Tosa Higienica"),
+    CONSULTA("Consulta"),
+    TAXI_DOG("Taxi DOG"),
+    HOTELZINHO("Hotelzinho"),
+    PRODUTOS("Produtos"),
+    RACOES("Rações"),
+    ADESTRADOR("Adestrador"),
+    VACINAS("Vacinas"),
+    EXAMES("Exames"),
+    MEDICAMENTOS("Medicamentos"),
+    SERVICO_EM_CASA("Serviço em Casa"),
+    CLINICO_24H("Clínico 24h"),
+    BRINDES_EXCLUSIVOS("Brindes Exclusivos");
 
     private final String descricao;
 
@@ -17,12 +28,9 @@ public enum TipoServico {
     }
 
     public static boolean isValid(String tipo) {
-        if (tipo == null)
-            return false;
-
-        for (TipoServico tipoServico : TipoServico.values()) {
-            if (tipoServico.name().equalsIgnoreCase(tipo) ||
-                    tipoServico.getDescricao().equalsIgnoreCase(tipo)) {
+        if (tipo == null) return false;
+        for (TipoServico ts : TipoServico.values()) {
+            if (ts.name().equalsIgnoreCase(tipo) || ts.getDescricao().equalsIgnoreCase(tipo)) {
                 return true;
             }
         }
@@ -30,16 +38,12 @@ public enum TipoServico {
     }
 
     public static TipoServico fromString(String tipo) {
-        if (tipo == null)
-            return null;
-
-        for (TipoServico tipoServico : TipoServico.values()) {
-            if (tipoServico.name().equalsIgnoreCase(tipo) ||
-                    tipoServico.getDescricao().equalsIgnoreCase(tipo)) {
-                return tipoServico;
+        if (tipo == null) return null;
+        for (TipoServico ts : TipoServico.values()) {
+            if (ts.name().equalsIgnoreCase(tipo) || ts.getDescricao().equalsIgnoreCase(tipo)) {
+                return ts;
             }
         }
-        throw new IllegalArgumentException("Tipo de serviço inválido: " + tipo +
-                ". Tipos permitidos: BANHO, TOSA, CONSULTA");
+        throw new IllegalArgumentException("Tipo de serviço inválido: " + tipo);
     }
 }

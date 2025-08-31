@@ -149,4 +149,5 @@ public class AgendamentosController {
         String login = userDetails.getUsername();
         return ResponseEntity.ok(this.agendamentoService.meusAgendamentos(login));
     }
+
 }

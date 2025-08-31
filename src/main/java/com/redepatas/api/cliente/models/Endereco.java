@@ -54,7 +54,6 @@ public class Endereco {
     @NotNull(message = "O status 'selecionado' não pode ser nulo.")
     private Boolean selecionado;
 
-
     @NotNull(message = "A associação com o cliente é obrigatória.")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_user", nullable = false)

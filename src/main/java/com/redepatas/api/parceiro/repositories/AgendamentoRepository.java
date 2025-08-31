@@ -17,23 +17,25 @@ import com.redepatas.api.parceiro.models.AgendamentoModel;
 
 @Repository
 public interface AgendamentoRepository extends JpaRepository<AgendamentoModel, UUID> {
-    List<AgendamentoModel> findByCliente(ClientModel paramClientModel);
+       List<AgendamentoModel> findByCliente(ClientModel paramClientModel);
 
-    Optional<AgendamentoModel> findByHorario_IdAndDataAgendamento(UUID horarioId, LocalDate dataAgendamento);
+       Optional<AgendamentoModel> findByHorario_IdAndDataAgendamento(UUID horarioId, LocalDate dataAgendamento);
 
-    List<AgendamentoModel> findAllByParceiro_IdPartnerAndDataAgendamento(UUID parceiroId, LocalDate dataAgendamento);
+       List<AgendamentoModel> findAllByParceiro_IdPartnerAndDataAgendamento(UUID parceiroId, LocalDate dataAgendamento);
 
-    List<AgendamentoModel> findAllByParceiro_IdPartnerAndStatus(UUID parceiroId, StatusAgendamento status);
+       List<AgendamentoModel> findAllByParceiro_IdPartnerAndStatus(UUID parceiroId, StatusAgendamento status);
 
-    Optional<AgendamentoModel> findByIdAndParceiro_IdPartner(UUID id, UUID parceiroId);
+       Optional<AgendamentoModel> findByIdAndParceiro_IdPartner(UUID id, UUID parceiroId);
 
-    List<AgendamentoModel> findAllByHorario_IdAndDataAgendamento(UUID horarioId, LocalDate dataAgendamento);
+       List<AgendamentoModel> findAllByHorario_IdAndDataAgendamento(UUID horarioId, LocalDate dataAgendamento);
 
-    @Query("SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END FROM AgendamentoModel a " +
-           "WHERE a.horario.dia.agenda.servico.id = :servicoId " +
-           "AND a.dataAgendamento >= :data " +
-           "AND a.status IN :statuses")
-    boolean existsFuturosPorServico(@Param("servicoId") UUID servicoId,
-                                    @Param("data") LocalDate data,
-                                    @Param("statuses") List<StatusAgendamento> statuses);
+       boolean existsByClienteAndStatus(ClientModel cliente, StatusAgendamento status);
+
+       @Query("SELECT CASE WHEN COUNT(a) > 0 THEN true ELSE false END FROM AgendamentoModel a " +
+                     "WHERE a.horario.dia.agenda.servico.id = :servicoId " +
+                     "AND a.dataAgendamento >= :data " +
+                     "AND a.status IN :statuses")
+       boolean existsFuturosPorServico(@Param("servicoId") UUID servicoId,
+                     @Param("data") LocalDate data,
+                     @Param("statuses") List<StatusAgendamento> statuses);
 }

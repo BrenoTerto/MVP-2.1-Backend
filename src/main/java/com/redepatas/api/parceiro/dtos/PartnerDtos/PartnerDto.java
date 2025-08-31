@@ -5,6 +5,8 @@ import java.util.UUID;
 public record PartnerDto(
     UUID idParceiro,
     UUID idServico,
+    Double desconto,
+    String motivoDesconto,
     Integer quantidadeHorarios,
     String imageUrl,
     String name,

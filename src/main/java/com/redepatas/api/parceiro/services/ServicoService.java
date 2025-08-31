@@ -25,6 +25,7 @@ import org.springframework.web.server.ResponseStatusException;
 import com.redepatas.api.cliente.models.ClientModel;
 import com.redepatas.api.cliente.repositories.ClientRepository;
 import com.redepatas.api.parceiro.models.Enum.StatusAgendamento;
+import com.redepatas.api.parceiro.models.Enum.StatusAssinatura;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.AdicionalProjecao;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.DetalhesServicoDto;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.DistanceDurationDto;
@@ -144,7 +145,25 @@ public class ServicoService {
             System.err.println(
                     "AVISO: A contagem de distâncias retornada pela API não corresponde à contagem de parceiros.");
         }
+        String motivoDesconto;
+        Double desconto;
+        if (client.getAssinatura() != null
+                && client.getAssinatura().getStatusAssinatura() == StatusAssinatura.ATIVA) {
 
+            boolean isPrimeiroPedido = !agendamentoRepository.existsByClienteAndStatus(client,
+                    StatusAgendamento.CONFIRMADO);
+
+            if (isPrimeiroPedido) {
+                desconto = 50.0;
+                motivoDesconto = "Desconto de 50% para assinantes no primeiro agendamento!";
+            } else {
+                desconto = 15.0;
+                motivoDesconto = "Desconto de 15% para assinantes da plataforma.";
+            }
+        } else {
+            desconto = 0.0;
+            motivoDesconto = "Sem desconto aplicável.";
+        }
         List<PartnerDto> resultadoFinal = new ArrayList<>();
         for (int i = 0; i < resultadosDoBanco.size(); i++) {
             ParceiroBuscaProjecao projecao = resultadosDoBanco.get(i);
@@ -157,6 +176,8 @@ public class ServicoService {
             resultadoFinal.add(new PartnerDto(
                     projecao.getId_partner(),
                     projecao.getId_servico(),
+                    desconto,
+                    motivoDesconto,
                     projecao.getQuantidade_horarios(),
                     projecao.getImagem(),
                     projecao.getNome_do_parceiro(),

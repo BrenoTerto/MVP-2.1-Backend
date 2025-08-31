@@ -36,6 +36,7 @@ import com.redepatas.api.parceiro.models.PartnerModel;
 import com.redepatas.api.parceiro.models.ServicoModel;
 import com.redepatas.api.parceiro.models.Enum.DiaSemana;
 import com.redepatas.api.parceiro.models.Enum.StatusAgendamento;
+import com.redepatas.api.parceiro.models.Enum.StatusAssinatura;
 import com.redepatas.api.parceiro.repositories.AdicionaisRepository;
 import com.redepatas.api.parceiro.repositories.AgendamentoRepository;
 import com.redepatas.api.parceiro.repositories.PartnerRepository;
@@ -184,20 +185,44 @@ public class AgendamentoService {
                 itensPersist.add(itemPersist);
             }
         }
-
-        double precoFinal = precoBase + adicionaisTotal;
+        
 
         agendamentoRepository.findByHorario_IdAndDataAgendamento(dto.getHorarioId(), dto.getDataAgendamento())
                 .ifPresent(a -> {
                     throw new IllegalArgumentException("Horário já reservado para esta data");
                 });
+        
+        String motivoDesconto;
+        Double precoBruto = precoBase + adicionaisTotal;
+        Double precoFinal;
+        Double desconto;
+        if (cliente.getAssinatura() != null
+                && cliente.getAssinatura().getStatusAssinatura() == StatusAssinatura.ATIVA) {
 
+            //boolean isPrimeiroPedido = !agendamentoRepository.existsByClienteAndStatus(cliente,
+                    //StatusAgendamento.CONFIRMADO);
+            boolean isPrimeiroPedido = true;
+            if (isPrimeiroPedido) {
+                desconto = 50.0;
+                motivoDesconto = "Desconto de 50% para assinantes no primeiro agendamento!";
+            } else {
+                desconto = 15.0;
+                motivoDesconto = "Desconto de 15% para assinantes da plataforma.";
+            }
+        } else {
+            desconto = 0.0;
+            motivoDesconto = "Sem desconto aplicável.";
+        }
+        precoFinal = precoBruto - (precoBruto * desconto / 100);
         AgendamentoModel ag = new AgendamentoModel();
         ag.setAvaliado(false);
         ag.setCliente(cliente);
         ag.setServico_tipo(servico.getTipo());
         ag.setParceiro(servico.getParceiro());
         ag.setHorario(horario);
+        ag.setDesconto(desconto);
+        ag.setPrecoFinal(precoFinal);
+        ag.setMotivoDesconto(motivoDesconto);
         ag.setPet_avatarUrl(pet.getAvatarUrl());
         ag.setPet_castrado(pet.getCastrado());
         ag.setPet_especie(pet.getEspecie());
@@ -297,6 +322,9 @@ public class AgendamentoService {
                 ag.getDataAgendamento(),
                 ag.getHorario().getHorarioInicio() + " - " + ag.getHorario().getHorarioFim(),
                 ag.getStatus(),
+                ag.getPrecoBruto(),
+                ag.getMotivoDesconto(),
+                ag.getDesconto(),
                 ag.getPrecoFinal(),
                 ag.getServico_tipo(),
                 ag.getCliente().getName(),
@@ -354,4 +382,5 @@ public class AgendamentoService {
 
                 .toList();
     }
+
 }

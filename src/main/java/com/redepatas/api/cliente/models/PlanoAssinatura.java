@@ -1,21 +1,18 @@
 package com.redepatas.api.cliente.models;
 
 import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.Data;
+import jakarta.persistence.*;
+import lombok.*;
+import com.redepatas.api.parceiro.models.TipoServico;
 
 @Data
 @Entity
 @Table(name = "planos_assinatura")
+@NoArgsConstructor
+@AllArgsConstructor
 public class PlanoAssinatura {
 
     @Id
@@ -26,8 +23,15 @@ public class PlanoAssinatura {
 
     private BigDecimal preco;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    private Set<String> beneficios = new HashSet<>();
-
     private int duracaoDias = 30;
+
+    private int nivel = 1;
+
+    private boolean customizado = false;
+
+    @ElementCollection(targetClass = TipoServico.class, fetch = FetchType.EAGER)
+    @Enumerated(EnumType.STRING)
+    @CollectionTable(name = "plano_servicos", joinColumns = @JoinColumn(name = "plano_id"))
+    @Column(name = "tipo_servico")
+    private List<TipoServico> servicos = new ArrayList<>();
 }
