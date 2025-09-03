@@ -477,7 +477,15 @@ public class ServicoService {
     }
 
     public List<String> listarTiposPermitidos() {
-        return List.of("BANHO", "TOSA", "CONSULTA", "TOSA_HIGIENICA");
+        // Tipos disponíveis para o parceiro no app
+        return List.of(
+                "BANHO",
+                "TOSA",
+                "TOSA_HIGIENICA",
+                "CONSULTA",
+                "ADESTRADOR",
+                "HOTELZINHO",
+                "PETSITTER");
     }
 
     private AgendaResponseDTO converterAgendaParaDTO(AgendaModel agenda) {
