@@ -1,23 +1,27 @@
 package com.redepatas.api.cliente.controllers;
 
-import com.redepatas.api.cliente.dtos.AssinaturaDtos.AssinaturaAtivaDto;
-import com.redepatas.api.cliente.dtos.AssinaturaDtos.PlanoDto;
-import com.redepatas.api.cliente.models.PlanoAssinatura;
-import com.redepatas.api.cliente.repositories.PlanoAssinaturaRepository;
-import com.redepatas.api.cliente.services.AsaasClientService;
-import com.redepatas.api.cliente.services.AssinaturaServices;
-import com.redepatas.api.cliente.repositories.AssinaturaClienteRepository;
-import org.springframework.web.server.ResponseStatusException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.redepatas.api.cliente.dtos.AssinaturaDtos.AssinaturaAtivaDto;
+import com.redepatas.api.cliente.dtos.AssinaturaDtos.PlanoDto;
+import com.redepatas.api.cliente.models.PlanoAssinatura;
+import com.redepatas.api.cliente.repositories.AssinaturaClienteRepository;
+import com.redepatas.api.cliente.repositories.PlanoAssinaturaRepository;
+import com.redepatas.api.cliente.services.AsaasClientService;
+import com.redepatas.api.cliente.services.AssinaturaServices;
 
 @RestController
 @RequestMapping("/assinaturas")
@@ -51,7 +55,7 @@ public class AssinaturasController {
                 plano.getId(),
                 plano.getNome(),
                 plano.getPreco(),
-                new ArrayList<>(plano.getBeneficios()), // Convertendo Set para List
+                new ArrayList<>(plano.getServicos()),
                 plano.getDuracaoDias());
 
         return new AssinaturaAtivaDto(
