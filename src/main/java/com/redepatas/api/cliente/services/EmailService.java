@@ -120,9 +120,9 @@ public class EmailService {
 
     @Async
     public void enviarRecovery(String para, String token, boolean parceiro) throws MessagingException {
-        String baseUrl = parceiro ? "https://parceiro.redepatas.com/" : "https://cliente.redepatas.com/";
+        String url = parceiro ? "https://parceiro.redepatas.com/reset-password?token=" + token : "https://cliente.redepatas.com/newPassword/" + token;
         Context context = new Context();
-        context.setVariable("linkRecuperacao", baseUrl + "newPassword/" + token);
+        context.setVariable("linkRecuperacao", url);
         String corpoHtml = templateEngine.process("recovery-password", context);
         enviarEmail(para, "Redefinição de Senha", corpoHtml, "Rede Patas", "noreply");
     }
