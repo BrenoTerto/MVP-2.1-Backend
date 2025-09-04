@@ -62,11 +62,12 @@ public class ClientModel implements UserDetails, TokenUser {
     private boolean emailConfirmado = false;
 
     public ClientModel(String login, String encryptedPassword, String email, String numero, String name,
-            ClientRole role, String CPF) {
+            ClientRole role, String CPF, LocalDate birthDate) {
         this.login = login;
         this.password = encryptedPassword;
         this.name = name;
         this.role = role;
+        this.birthDate = birthDate;
         this.CPF = CPF;
         this.phoneNumber = numero;
         this.email = email;

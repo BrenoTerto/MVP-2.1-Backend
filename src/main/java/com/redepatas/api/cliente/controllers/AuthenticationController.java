@@ -125,7 +125,7 @@ public class AuthenticationController {
             String encryptedPassword = new BCryptPasswordEncoder().encode(data.password());
 
             ClientModel newUser = new ClientModel(data.login(), encryptedPassword, data.email(), data.numero(),
-                    data.name(), ClientRole.USER, data.CPF());
+                    data.name(), ClientRole.USER, data.CPF(), data.dataNascimento());
             newUser.setEmailConfirmado(false);
             this.repository.save(newUser);
 
