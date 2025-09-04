@@ -151,7 +151,7 @@ public class PartnerService {
                                         null,
                                         partner);
                         partnerConfirmationTokenRepository.save(confirmationToken);
-                        String link = "https://parceirosrede.iandev.site/confirmPartnerEmail/" + token;
+                        String link = "https://parceiro.redepatas.com.br/confirmPartnerEmail/" + token;
                         try {
                                 emailService.enviarConfirmacao(partner.getEmailContato(), partner.getName(), link);
                         } catch (MessagingException e) {
@@ -265,7 +265,7 @@ public class PartnerService {
                                 partner);
                 partnerConfirmationTokenRepository.save(confirmationToken);
 
-                String link = "https://parceirosrede.iandev.site/confirmPartnerEmail/" + token;
+                String link = "https://parceiro.redepatas.com.br/confirmPartnerEmail/" + token;
                 try {
                         emailService.enviarConfirmacao(partner.getEmailContato(), partner.getName(), link);
                 } catch (MessagingException e) {
