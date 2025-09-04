@@ -35,7 +35,6 @@ public class EmailService {
     @Autowired
     @Qualifier("noreplyMailSender")
     private JavaMailSender noreplyMailSender;
-    private static String UrlBasic = "https://beta.redepastas.com/";
 
     @SuppressWarnings("deprecation")
     public void enviarEmail(String para, String assunto, String corpoHtml, String personal, String from)
@@ -116,14 +115,16 @@ public class EmailService {
 
         String corpoHtml = templateEngine.process("confirmacaoTemplate", context);
 
-        enviarEmail(para, "Confirme seu cadastro", corpoHtml, "Confirmação cadastral", "noreply");
+        enviarEmail(para, "Confirme seu cadastro", corpoHtml, "Rede Patas", "noreply");
     }
 
     @Async
-    public void enviarRecovery(String para, String token) throws MessagingException {
+    public void enviarRecovery(String para, String token, boolean parceiro) throws MessagingException {
+        String baseUrl = parceiro ? "https://parceiro.redepatas.com/" : "https://cliente.redepatas.com/";
         Context context = new Context();
-        context.setVariable("linkRecuperacao", UrlBasic + "newPassword/" + token);
+        context.setVariable("linkRecuperacao", baseUrl + "newPassword/" + token);
         String corpoHtml = templateEngine.process("recovery-password", context);
-        enviarEmail(para, "Redefinição de Senha", corpoHtml, "Não Responda", "noreply");
+        enviarEmail(para, "Redefinição de Senha", corpoHtml, "Rede Patas", "noreply");
     }
 }
+

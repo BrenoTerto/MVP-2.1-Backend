@@ -213,7 +213,7 @@ public class AuthenticationController {
         if (userDetails instanceof ClientModel clientModel) {
             if (clientModel.isEmailConfirmado()) {
                 String token = tokenService.generateTokenPassword(clientModel.getEmail());
-                emailService.enviarRecovery(clientModel.getEmail(), token);
+                emailService.enviarRecovery(clientModel.getEmail(), token, false);
             }
         }
 

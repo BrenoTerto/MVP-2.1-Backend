@@ -39,7 +39,7 @@ public class PartnerPasswordResetService {
             String rawToken = tokenService.generateTokenPassword(email);
             try {
 
-                emailService.enviarRecovery(email, rawToken);
+                emailService.enviarRecovery(email, rawToken, true);
             } catch (MessagingException e) {
                 throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Falha ao enviar email");
             }
