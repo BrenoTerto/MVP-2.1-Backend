@@ -1,10 +1,8 @@
-package com.redepatas.api.cliente.controllers;
+package com.redepatas.api.cliente.models;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-import com.redepatas.api.cliente.models.ClientModel;
-import com.redepatas.api.cliente.models.PlanoAssinatura;
 import com.redepatas.api.parceiro.models.Enum.StatusAssinatura;
 
 import jakarta.persistence.Entity;

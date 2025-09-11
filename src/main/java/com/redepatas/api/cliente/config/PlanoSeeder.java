@@ -23,8 +23,9 @@ public class PlanoSeeder implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        if (planoRepository.count() > 0)
-            return; // Já existem planos
+        if (planoRepository.count() > 0) {
+            return;
+        }
 
         List<PlanoAssinatura> planos = new ArrayList<>();
         List<TipoServico> servicosAcumulados = new ArrayList<>();
@@ -35,10 +36,27 @@ public class PlanoSeeder implements ApplicationRunner {
         patinhas.setPreco(BigDecimal.valueOf(29.90));
         patinhas.setNivel(1);
         patinhas.setCustomizado(false);
-        patinhas.setServicos(List.of(TipoServico.BANHO, TipoServico.TOSA_HIGIENICA));
+        patinhas.setServicos(List.of(TipoServico.BANHO, TipoServico.TOSA_HIGIENICA, TipoServico.CONSULTA));
         servicosAcumulados.addAll(patinhas.getServicos());
         patinhas.setServicos(new ArrayList<>(servicosAcumulados));
         planos.add(patinhas);
+
+        // Plano Patinhas 30
+        PlanoAssinatura patinhas30 = new PlanoAssinatura();
+        patinhas30.setNome("Patinhas 30");
+        patinhas30.setPreco(BigDecimal.valueOf(29.90));
+        patinhas30.setNivel(1);
+        patinhas30.setCustomizado(true);
+        List<TipoServico> servicosPatinhas30 = new ArrayList<>(patinhas.getServicos());
+        servicosPatinhas30.addAll(List.of(
+                TipoServico.HOTELZINHO,
+                TipoServico.ADESTRADOR,
+                TipoServico.PETSITTER,
+                TipoServico.CRECHE
+        ));
+
+        patinhas30.setServicos(servicosPatinhas30);
+        planos.add(patinhas30);
 
         // Plano Auconchego
         PlanoAssinatura auconchego = new PlanoAssinatura();
@@ -46,7 +64,7 @@ public class PlanoSeeder implements ApplicationRunner {
         auconchego.setPreco(BigDecimal.valueOf(49.90));
         auconchego.setNivel(2);
         auconchego.setCustomizado(false);
-        auconchego.setServicos(List.of(TipoServico.CONSULTA, TipoServico.TAXI_DOG, TipoServico.HOTELZINHO));
+        auconchego.setServicos(List.of(TipoServico.TAXI_DOG, TipoServico.HOTELZINHO));
         servicosAcumulados.addAll(auconchego.getServicos());
         auconchego.setServicos(new ArrayList<>(servicosAcumulados));
         planos.add(auconchego);

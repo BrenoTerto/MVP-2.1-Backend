@@ -8,6 +8,7 @@ public enum TipoServico {
     TAXI_DOG("Taxi DOG"),
     HOTELZINHO("Hotelzinho"),
     PETSITTER("Petsitter"),
+    CRECHE("Creche"),
     PRODUTOS("Produtos"),
     RACOES("Rações"),
     ADESTRADOR("Adestrador"),

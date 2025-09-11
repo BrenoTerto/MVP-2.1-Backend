@@ -32,11 +32,11 @@ import com.redepatas.api.parceiro.models.AgendaDiaModel;
 import com.redepatas.api.parceiro.models.AgendaHorarioModel;
 import com.redepatas.api.parceiro.models.AgendamentoAdicionalModel;
 import com.redepatas.api.parceiro.models.AgendamentoModel;
-import com.redepatas.api.parceiro.models.PartnerModel;
-import com.redepatas.api.parceiro.models.ServicoModel;
 import com.redepatas.api.parceiro.models.Enum.DiaSemana;
 import com.redepatas.api.parceiro.models.Enum.StatusAgendamento;
 import com.redepatas.api.parceiro.models.Enum.StatusAssinatura;
+import com.redepatas.api.parceiro.models.PartnerModel;
+import com.redepatas.api.parceiro.models.ServicoModel;
 import com.redepatas.api.parceiro.repositories.AdicionaisRepository;
 import com.redepatas.api.parceiro.repositories.AgendamentoRepository;
 import com.redepatas.api.parceiro.repositories.PartnerRepository;
@@ -89,7 +89,7 @@ public class AgendamentoService {
         }
         AgendamentoModel agendamento = agendamentoRepository.findById(data.idAgendamento())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Agendamento não encontrado"));
+                "Agendamento não encontrado"));
         LocalDateTime agora = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm");
         LocalTime horaInicio = LocalTime.parse(agendamento.getHorario().getHorarioInicio(), formatter);
@@ -185,13 +185,12 @@ public class AgendamentoService {
                 itensPersist.add(itemPersist);
             }
         }
-        
 
         agendamentoRepository.findByHorario_IdAndDataAgendamento(dto.getHorarioId(), dto.getDataAgendamento())
                 .ifPresent(a -> {
                     throw new IllegalArgumentException("Horário já reservado para esta data");
                 });
-        
+
         String motivoDesconto;
         Double precoBruto = precoBase + adicionaisTotal;
         Double precoFinal;
@@ -200,7 +199,7 @@ public class AgendamentoService {
                 && cliente.getAssinatura().getStatusAssinatura() == StatusAssinatura.ATIVA) {
 
             //boolean isPrimeiroPedido = !agendamentoRepository.existsByClienteAndStatus(cliente,
-                    //StatusAgendamento.CONFIRMADO);
+            //StatusAgendamento.CONFIRMADO);
             boolean isPrimeiroPedido = true;
             if (isPrimeiroPedido) {
                 desconto = 50.0;
@@ -221,6 +220,7 @@ public class AgendamentoService {
         ag.setParceiro(servico.getParceiro());
         ag.setHorario(horario);
         ag.setDesconto(desconto);
+        ag.setPrecoBruto(precoBruto);
         ag.setPrecoFinal(precoFinal);
         ag.setMotivoDesconto(motivoDesconto);
         ag.setPet_avatarUrl(pet.getAvatarUrl());
@@ -249,20 +249,27 @@ public class AgendamentoService {
 
         String destination = "/topic/agendamentos/" + servico.getParceiro().getIdPartner().toString();
         ag.setItens(itensPersist);
-        AgendamentoModel salvo = agendamentoRepository.save(ag);
-        AgendamentoNotificationDto notificationPayload = new AgendamentoNotificationDto(
-                salvo.getId(),
-                salvo.getCliente().getName(),
-                pet.getNome(),
-                pet.getAvatarUrl(),
-                servico.getTipo().toString(),
-                precoFinal,
-                LocalDateTime.now(),
-                dto.getDataAgendamento(),
-                horario.getHorarioInicio() + " - " + horario.getHorarioFim());
+        AgendamentoModel salvo = null;
+        try {
+            salvo = agendamentoRepository.save(ag);
 
-        System.out.println("Enviando notificação para o destino: " + destination);
-        messagingTemplate.convertAndSend(destination, notificationPayload);
+            AgendamentoNotificationDto notificationPayload = new AgendamentoNotificationDto(
+                    salvo.getId(),
+                    salvo.getCliente().getName(),
+                    pet.getNome(),
+                    pet.getAvatarUrl(),
+                    servico.getTipo().toString(),
+                    precoFinal,
+                    LocalDateTime.now(),
+                    dto.getDataAgendamento(),
+                    horario.getHorarioInicio() + " - " + horario.getHorarioFim()
+            );
+            messagingTemplate.convertAndSend(destination, notificationPayload);
+
+        } catch (Exception e) {
+            throw new ResponseStatusException(
+                    HttpStatus.INTERNAL_SERVER_ERROR, "Erro ao salvar agendamento", e);
+        }
 
         response.setId(salvo.getId());
         response.setServicoId(servico.getId());
@@ -370,16 +377,16 @@ public class AgendamentoService {
 
     public List<ResponseAgendamentosdto> meusAgendamentos(String login) {
         ClientModel cliente = (ClientModel) this.clientRepository.findByLogin(login);
-        if (cliente == null)
+        if (cliente == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usunencontrado/logado");
+        }
         List<AgendamentoModel> agendamentos = this.agendamentoRepository.findByCliente(cliente);
         return agendamentos.stream()
                 .map(agendamento -> new ResponseAgendamentosdto(agendamento.getId(), agendamento.getStatus(),
-                        Boolean.valueOf(false), agendamento.getServico_tipo().toString(), agendamento.getPet_nome(),
-                        agendamento.getPet_nome(), agendamento.getDataAgendamento().format(this.formatter),
-                        agendamento.getHorario().getHorarioInicio() + "-" + agendamento.getHorario().getHorarioInicio(),
-                        agendamento.getParceiro().getName(), agendamento.getParceiro().getLogin()))
-
+                Boolean.valueOf(false), agendamento.getServico_tipo().toString(), agendamento.getPet_nome(),
+                agendamento.getPet_nome(), agendamento.getDataAgendamento().format(this.formatter),
+                agendamento.getHorario().getHorarioInicio() + "-" + agendamento.getHorario().getHorarioInicio(),
+                agendamento.getParceiro().getName(), agendamento.getParceiro().getLogin()))
                 .toList();
     }
 

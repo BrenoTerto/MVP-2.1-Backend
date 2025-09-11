@@ -1,5 +1,18 @@
 package com.redepatas.api.cliente.services;
 
+import java.io.IOException;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.redepatas.api.cliente.dtos.petDtos.GetPetsDto;
 import com.redepatas.api.cliente.dtos.petDtos.NewPetDto;
 import com.redepatas.api.cliente.dtos.petDtos.PetUpdateDto;
@@ -9,19 +22,6 @@ import com.redepatas.api.cliente.models.PetModel;
 import com.redepatas.api.cliente.models.Vacina;
 import com.redepatas.api.cliente.repositories.ClientRepository;
 import com.redepatas.api.cliente.repositories.PetRepository;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.server.ResponseStatusException;
-
-import java.io.IOException;
-import java.time.LocalDate;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 @Service
 public class PetServices {
@@ -96,7 +96,7 @@ public class PetServices {
         ClientModel client = (ClientModel) clientRepository.findByLogin(login);
         PetModel pet = petRepository.findById(petId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Pet não encontrado ou não pertence ao cliente."));
+                "Pet não encontrado ou não pertence ao cliente."));
 
         if (!pet.getClient().getIdUser().equals(client.getIdUser())) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Este pet não pertence ao cliente.");
@@ -180,8 +180,8 @@ public class PetServices {
 
         return vacinas.stream()
                 .map(vacina -> new VacinaDto(
-                        vacina.getNome(),
-                        vacina.getDataAplicacao()))
+                vacina.getNome(),
+                vacina.getDataAplicacao()))
                 .toList();
     }
 
@@ -206,15 +206,25 @@ public class PetServices {
         } catch (IOException e) {
             throw new RuntimeException("Erro ao processar imagem para o avatar.", e);
         }
+        if (dto.rgPet() != "" || dto.rgPet() != null) {
+            boolean exists = petRepository.existsByRgPet(dto.rgPet());
+            if (exists) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "RG do pet já existe.");
+            }
+        }
         try {
             PetModel pet = convertDtoToPet(dto, imageUrl);
+            if (dto.rgPet() != null && dto.rgPet().trim().isEmpty()) {
+                pet.setRgPet(null);
+            }
             pet.setClient(client);
             pet.setIdPet(null);
 
             petRepository.save(pet);
             return "Pet adicionado ao cliente com sucesso!";
-        } catch (DataIntegrityViolationException e) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "RG do pet já existe.");
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Erro ao adicionar pet.");
         }
     }
 
@@ -244,7 +254,7 @@ public class PetServices {
                 .filter(p -> p.getIdPet().equals(petId))
                 .findFirst()
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND,
-                        "Pet não encontrado ou não pertence ao cliente."));
+                "Pet não encontrado ou não pertence ao cliente."));
 
         Vacina vacina = pet.getVacinas().stream()
                 .filter(v -> v.getIdVacina().equals(vacinaId))

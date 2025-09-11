@@ -1,15 +1,5 @@
 package com.redepatas.api.cliente.services;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.redepatas.api.cliente.controllers.AssinaturaClienteModel;
-import com.redepatas.api.cliente.models.ClientModel;
-import com.redepatas.api.cliente.models.PlanoAssinatura;
-import com.redepatas.api.cliente.repositories.AssinaturaClienteRepository;
-import com.redepatas.api.cliente.repositories.ClientRepository;
-import com.redepatas.api.cliente.repositories.PlanoAssinaturaRepository;
-import com.redepatas.api.parceiro.models.Enum.StatusAssinatura;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -19,6 +9,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.redepatas.api.cliente.models.AssinaturaClienteModel;
+import com.redepatas.api.cliente.models.ClientModel;
+import com.redepatas.api.cliente.models.PlanoAssinatura;
+import com.redepatas.api.cliente.repositories.AssinaturaClienteRepository;
+import com.redepatas.api.cliente.repositories.ClientRepository;
+import com.redepatas.api.cliente.repositories.PlanoAssinaturaRepository;
+import com.redepatas.api.parceiro.models.Enum.StatusAssinatura;
 
 @Service
 public class AssinaturaServices {
@@ -94,7 +94,7 @@ public class AssinaturaServices {
 
         LocalDate dataVencimento = LocalDate.now().plusDays(5);
         String dataVencimentoString = dataVencimento.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
+        System.out.println(dataVencimento);
         String responseAssinatura = asaasClientService.criarAssinatura(
                 client.getIdCustomer(),
                 plano.getPreco(),

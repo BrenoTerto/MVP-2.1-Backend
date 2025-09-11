@@ -1,5 +1,12 @@
 package com.redepatas.api.cliente.services;
 
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URL;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -14,13 +21,6 @@ import jakarta.activation.URLDataSource;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeBodyPart;
 import jakarta.mail.internet.MimeMultipart;
-
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.net.URL;
 
 @Service
 public class EmailService {
@@ -120,7 +120,7 @@ public class EmailService {
 
     @Async
     public void enviarRecovery(String para, String token, boolean parceiro) throws MessagingException {
-        String url = parceiro ? "https://parceiro.redepatas.com/reset-password?token=" + token : "https://cliente.redepatas.com/newPassword/" + token;
+        String url = parceiro ? "https://parceiro.redepatas.com.br/reset-password?token=" + token : "https://cliente.redepatas.com.br/newPassword/" + token;
         Context context = new Context();
         context.setVariable("linkRecuperacao", url);
         String corpoHtml = templateEngine.process("recovery-password", context);

@@ -33,7 +33,6 @@ public class PetModel {
     @ManyToOne
     @JoinColumn(name = "id_user", nullable = false)
     private ClientModel client;
-    @Column(unique = true)
     private String rgPet;
     private String avatarUrl;
     @NotNull(message = "O campo nome é obrigatório.")

@@ -6,12 +6,14 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.Normalizer;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.json.JSONArray;
@@ -24,8 +26,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.redepatas.api.cliente.models.ClientModel;
 import com.redepatas.api.cliente.repositories.ClientRepository;
-import com.redepatas.api.parceiro.models.Enum.StatusAgendamento;
-import com.redepatas.api.parceiro.models.Enum.StatusAssinatura;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.AdicionalProjecao;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.DetalhesServicoDto;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.DistanceDurationDto;
@@ -34,9 +34,9 @@ import com.redepatas.api.parceiro.dtos.PartnerDtos.HorarioProjecao;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.ParceiroBuscaProjecao;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerDto;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.AdicionalResponseDTO;
-import com.redepatas.api.parceiro.dtos.ServicoDtos.AgendaResponseDTO;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.AgendaDiaResponseDTO;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.AgendaHorarioResponseDTO;
+import com.redepatas.api.parceiro.dtos.ServicoDtos.AgendaResponseDTO;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.AtualizarServicoDTO;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.CriarAdicionalDTO;
 import com.redepatas.api.parceiro.dtos.ServicoDtos.CriarAgendaDTO;
@@ -48,15 +48,17 @@ import com.redepatas.api.parceiro.models.AdicionaisModel;
 import com.redepatas.api.parceiro.models.AgendaDiaModel;
 import com.redepatas.api.parceiro.models.AgendaHorarioModel;
 import com.redepatas.api.parceiro.models.AgendaModel;
+import com.redepatas.api.parceiro.models.Enum.DiaSemana;
+import com.redepatas.api.parceiro.models.Enum.StatusAgendamento;
+import com.redepatas.api.parceiro.models.Enum.StatusAssinatura;
 import com.redepatas.api.parceiro.models.PartnerModel;
 import com.redepatas.api.parceiro.models.ServicoModel;
 import com.redepatas.api.parceiro.models.TipoServico;
-import com.redepatas.api.parceiro.models.Enum.DiaSemana;
 import com.redepatas.api.parceiro.repositories.AdicionaisRepository;
+import com.redepatas.api.parceiro.repositories.AgendamentoRepository;
 import com.redepatas.api.parceiro.repositories.HorariosRepository;
 import com.redepatas.api.parceiro.repositories.PartnerRepository;
 import com.redepatas.api.parceiro.repositories.ServicoRepository;
-import com.redepatas.api.parceiro.repositories.AgendamentoRepository;
 
 @Service
 public class ServicoService {
@@ -104,6 +106,10 @@ public class ServicoService {
     public List<PartnerDto> buscarParceirosDisponiveis(String cidade, String rua, String bairro, String loginCliente,
             String diaSemana, String tipoServico, String tamanhoPet) {
 
+        String diaSemanaNormalizado = Normalizer.normalize(diaSemana, Normalizer.Form.NFD);
+        Pattern pattern = Pattern.compile("\\p{InCombiningDiacriticalMarks}+");
+        String diaSemanaSemAcentos = pattern.matcher(diaSemanaNormalizado).replaceAll("");
+
         var user = clientRepository.findByLogin(loginCliente);
         if (user == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Usuário não encontrado!");
@@ -122,13 +128,13 @@ public class ServicoService {
                     .findFirst()
                     .map(e -> e.getRua() + ", " + e.getBairro() + ", " + e.getCidade())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                            "Nenhum endereço foi fornecido na busca e não há um endereço selecionado no seu perfil."));
+                    "Nenhum endereço foi fornecido na busca e não há um endereço selecionado no seu perfil."));
         } else {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                     "Endereço incompleto! Para buscar utilizar a localização, por favor, forneça todos os campos: cidade, rua e bairro.");
         }
 
-        List<ParceiroBuscaProjecao> resultadosDoBanco = partnerRepository.findParceirosDisponiveis(cidade, diaSemana,
+        List<ParceiroBuscaProjecao> resultadosDoBanco = partnerRepository.findParceirosDisponiveis(cidade, diaSemanaSemAcentos,
                 tipoServico, tamanhoPet);
 
         if (resultadosDoBanco.isEmpty()) {
@@ -202,8 +208,8 @@ public class ServicoService {
 
         if (!TipoServico.isValid(dto.getTipo())) {
             throw new IllegalArgumentException(
-                    "Tipo de serviço inválido: " + dto.getTipo() +
-                            ". Tipos permitidos: BANHO, TOSA, CONSULTA");
+                    "Tipo de serviço inválido: " + dto.getTipo()
+                    + ". Tipos permitidos: BANHO, TOSA, CONSULTA");
         }
         if (servicoRepository.existsByTipoAndParceiro(TipoServico.fromString(dto.getTipo()),
                 parceiro)) {
@@ -430,8 +436,8 @@ public class ServicoService {
 
             String origemParam = URLEncoder.encode(origem, StandardCharsets.UTF_8);
 
-            String urlStr = "https://maps.googleapis.com/maps/api/distancematrix/json?origins=" +
-                    origemParam + "&destinations=" + destinosParam + "&departure_time=now" + "&key="
+            String urlStr = "https://maps.googleapis.com/maps/api/distancematrix/json?origins="
+                    + origemParam + "&destinations=" + destinosParam + "&departure_time=now" + "&key="
                     + API_KEY;
             URL url = new URL(urlStr);
             HttpURLConnection con = (HttpURLConnection) url.openConnection();
@@ -464,7 +470,7 @@ public class ServicoService {
                 } else {
                     throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
                             "Elemento sem distância/duração válido: "
-                                    + element.toString(2));
+                            + element.toString(2));
                 }
             }
 

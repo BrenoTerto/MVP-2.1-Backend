@@ -17,6 +17,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.redepatas.api.cliente.dtos.AssinaturaDtos.AssinaturaAtivaDto;
 import com.redepatas.api.cliente.dtos.AssinaturaDtos.PlanoDto;
+import com.redepatas.api.cliente.models.AssinaturaClienteModel;
 import com.redepatas.api.cliente.models.PlanoAssinatura;
 import com.redepatas.api.cliente.repositories.AssinaturaClienteRepository;
 import com.redepatas.api.cliente.repositories.PlanoAssinaturaRepository;

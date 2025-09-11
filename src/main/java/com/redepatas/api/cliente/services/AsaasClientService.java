@@ -13,12 +13,11 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.springframework.web.client.RestClientException;
 
 @Service
 public class AsaasClientService {
@@ -148,5 +147,26 @@ public class AsaasClientService {
             return "{\"error\": \"Erro ao criar assinatura: " + ex.getMessage() + "\"}";
         }
     }
+
+    public String alterarDescricaoAssinatura(String idAssinatura, String novaDescricao) {
+    String url = String.format("https://sandbox.asaas.com/api/v3/subscriptions/%s", idAssinatura);
+
+    Map<String, Object> body = new HashMap<>();
+    body.put("description", novaDescricao);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.set("access_token", accessToken);
+    headers.setContentType(MediaType.APPLICATION_JSON);
+
+    HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+    try {
+
+        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, requestEntity, String.class);
+        return response.getBody();
+    } catch (RestClientException ex) {
+        return "{\"error\": \"Erro ao alterar a assinatura: " + ex.getMessage() + "\"}";
+    }
+} 
 
 }
