@@ -20,7 +20,6 @@ public class ServicoResponseDTO {
     private List<AdicionalResponseDTO> adicionais;
     private AgendaResponseDTO agenda;
     
-    // Informações do parceiro
     private UUID parceiroId;
     private String nomeParceiro;
 }

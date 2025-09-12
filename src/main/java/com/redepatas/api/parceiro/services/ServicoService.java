@@ -306,7 +306,6 @@ public class ServicoService {
 
         ServicoModel servico = servicoOpt.get();
 
-        // Verificar se o serviço pertence ao parceiro autenticado
         if (!servico.getParceiro().getIdPartner().equals(parceiroId)) {
             throw new IllegalArgumentException("Você não tem permissão para atualizar este serviço");
         }

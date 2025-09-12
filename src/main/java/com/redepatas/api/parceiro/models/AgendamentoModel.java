@@ -21,14 +21,12 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
 @Entity
-@Table(name = "agendamento", uniqueConstraints = @UniqueConstraint(name = "uk_agendamento_horario_data", columnNames = {
-        "horario_id", "data_agendamento" }))
+@Table(name = "agendamento")
 public class AgendamentoModel {
 
     @Id

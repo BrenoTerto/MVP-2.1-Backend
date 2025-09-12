@@ -19,12 +19,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.redepatas.api.cliente.models.ClientModel;
 import com.redepatas.api.parceiro.dtos.AgedamentoDtos.AvaliarServicoDto;
 import com.redepatas.api.parceiro.dtos.AgedamentoDtos.ResponseAgendamentosdto;
+import com.redepatas.api.parceiro.dtos.AgendamentoDtos.AgendamentoDetalheResponseDTO;
 import com.redepatas.api.parceiro.dtos.AgendamentoDtos.AgendamentoResponseDTO;
-import com.redepatas.api.parceiro.dtos.AgendamentoDtos.CriarAgendamentoDTO;
 import com.redepatas.api.parceiro.dtos.AgendamentoDtos.AtualizarStatusAgendamentoDTO;
-import com.redepatas.api.cliente.models.ClientModel;
+import com.redepatas.api.parceiro.dtos.AgendamentoDtos.CriarAgendamentoDTO;
 import com.redepatas.api.parceiro.models.PartnerModel;
 import com.redepatas.api.parceiro.services.AgendamentoService;
 
@@ -105,21 +106,18 @@ public class AgendamentosController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<?> detalhesAgendamento(@PathVariable java.util.UUID id) {
+    public ResponseEntity<AgendamentoDetalheResponseDTO> detalhesAgendamento(@PathVariable java.util.UUID id) {
         try {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             if (authentication == null || !(authentication.getPrincipal() instanceof PartnerModel)) {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                        .body("Acesso negado: usuário não autenticado como parceiro");
+                throw new IllegalArgumentException("Acesso negado: usuário não autenticado como parceiro");
             }
             PartnerModel parceiro = (PartnerModel) authentication.getPrincipal();
-            var detalhe = agendamentoService.buscarDetalhesAgendamento(parceiro.getIdPartner(), id);
-            return ResponseEntity.ok(detalhe);
+            return ResponseEntity.ok(agendamentoService.buscarDetalhesAgendamento(parceiro.getIdPartner(), id));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body("Erro: " + e.getMessage());
+            throw new IllegalArgumentException("Erro: " + e.getMessage());
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Erro interno do servidor: " + e.getMessage());
+            throw new RuntimeException("Erro interno do servidor: " + e.getMessage());
         }
     }
 
@@ -143,7 +141,7 @@ public class AgendamentosController {
         }
     }
 
-    @GetMapping({ "/meusAgendamentos" })
+    @GetMapping({"/meusAgendamentos"})
     public ResponseEntity<List<ResponseAgendamentosdto>> meusAgendamentos(
             @AuthenticationPrincipal UserDetails userDetails) {
         String login = userDetails.getUsername();

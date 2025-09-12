@@ -186,11 +186,11 @@ public class AgendamentoService {
             }
         }
 
-        agendamentoRepository.findByHorario_IdAndDataAgendamento(dto.getHorarioId(), dto.getDataAgendamento())
-                .ifPresent(a -> {
-                    throw new IllegalArgumentException("Horário já reservado para esta data");
-                });
-
+        boolean ocupado = agendamentoRepository.existsAgendamentoConfirmado(dto.getHorarioId(), dto.getDataAgendamento());
+        if (ocupado) {
+            throw new IllegalArgumentException("Horário já reservado para esta data");
+        }
+        //ADICIONAR OUTRA VERIFICACAO PARA UM CLIENTE NAO FAZER DOIS AGENDAMENTOS NO MESMO HORARIO
         String motivoDesconto;
         Double precoBruto = precoBase + adicionaisTotal;
         Double precoFinal;
@@ -383,8 +383,8 @@ public class AgendamentoService {
         List<AgendamentoModel> agendamentos = this.agendamentoRepository.findByCliente(cliente);
         return agendamentos.stream()
                 .map(agendamento -> new ResponseAgendamentosdto(agendamento.getId(), agendamento.getStatus(),
-                Boolean.valueOf(false), agendamento.getServico_tipo().toString(), agendamento.getPet_nome(),
-                agendamento.getPet_nome(), agendamento.getDataAgendamento().format(this.formatter),
+                agendamento.getAvaliado(), agendamento.getServico_tipo().toString(), agendamento.getPet_nome(),
+                agendamento.getPet_raca(), agendamento.getDataAgendamento().format(this.formatter),
                 agendamento.getHorario().getHorarioInicio() + "-" + agendamento.getHorario().getHorarioInicio(),
                 agendamento.getParceiro().getName(), agendamento.getParceiro().getLogin()))
                 .toList();
