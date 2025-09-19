@@ -28,6 +28,7 @@ import org.springframework.security.core.AuthenticationException;
 
 import com.redepatas.api.parceiro.dtos.PartnerDtos.AtualizarParceiroBasicDTO;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.AtualizarEnderecoPartnerDTO;
+import com.redepatas.api.parceiro.dtos.PartnerDtos.AtualizarPerfilPartnerDTO;
 import com.redepatas.api.cliente.dtos.ChangePasswordDto;
 import com.redepatas.api.parceiro.services.PasswordResetRateLimiter;
 import jakarta.servlet.http.HttpServletRequest;
@@ -65,7 +66,7 @@ public class PartnerController {
         }
 
         // Chamar o service - exceções são tratadas pelo PartnerExceptionHandler
-        String savedPartner = partnerService.createPartner(partnerDataJson, image);
+        String savedPartner = partnerService.criarParceiro(partnerDataJson, image);
         return ResponseEntity.status(201).body(savedPartner);
     }
 
@@ -112,10 +113,10 @@ public class PartnerController {
 
     @PostMapping("/resendConfirmation/{email}")
     public ResponseEntity<Void> resendConfirmation(@PathVariable("email") String email, HttpServletRequest request) {
-        String ip = extractClientIp(request);
+        String ip = extrairIpCliente(request);
         boolean allowed = rateLimiter.allow(email, ip);
         if (allowed) {
-            partnerService.resendConfirmationEmail(email);
+            partnerService.reenviarEmailConfirmacao(email);
         }
         return ResponseEntity.noContent().build();
     }
@@ -133,15 +134,24 @@ public class PartnerController {
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody @Valid AtualizarParceiroBasicDTO dto) {
         String login = userDetails.getUsername();
-        String resp = partnerService.updateBasic(login, dto.name(), dto.descricao());
+        String resp = partnerService.atualizarBasico(login, dto.name(), dto.descricao());
         return ResponseEntity.ok(resp);
     }
 
     @GetMapping("/me")
     public ResponseEntity<PartnerProfileDto> getMe(@AuthenticationPrincipal UserDetails userDetails) {
         String login = userDetails.getUsername();
-        PartnerProfileDto profile = partnerService.getProfile(login);
+        PartnerProfileDto profile = partnerService.buscarPerfil(login);
         return ResponseEntity.ok(profile);
+    }
+
+    @PutMapping("/me/profile")
+    public ResponseEntity<String> updateProfile(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody @Valid AtualizarPerfilPartnerDTO dto) {
+        String login = userDetails.getUsername();
+        String message = partnerService.atualizarPerfil(login, dto);
+        return ResponseEntity.ok(message);
     }
 
     @PutMapping("/me/address")
@@ -149,7 +159,7 @@ public class PartnerController {
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody @Valid AtualizarEnderecoPartnerDTO dto) {
         String login = userDetails.getUsername();
-        String resp = partnerService.updateAddress(login, dto.rua(), dto.bairro(), dto.cidade(), dto.estado(),
+        String resp = partnerService.atualizarEndereco(login, dto.rua(), dto.bairro(), dto.cidade(), dto.estado(),
                 dto.cep(), dto.numero(), dto.complemento(), dto.lugar());
         return ResponseEntity.ok(resp);
     }
@@ -159,10 +169,10 @@ public class PartnerController {
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestBody @Valid ChangePasswordDto dto) {
         String login = userDetails.getUsername();
-        String resp = partnerService.changePassword(login, dto.oldPassword(), dto.newPassword(), authenticationManager);
+        String resp = partnerService.alterarSenha(login, dto.oldPassword(), dto.newPassword(), authenticationManager);
         return ResponseEntity.ok(resp);
     }
-    private String extractClientIp(HttpServletRequest request) {
+    private String extrairIpCliente(HttpServletRequest request) {
         String header = request.getHeader("X-Forwarded-For");
         if (header != null && !header.isBlank()) {
             return header.split(",")[0].trim();

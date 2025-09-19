@@ -14,7 +14,7 @@ public class PartnerControllerResendDirectTest {
     static class FlagPartnerService extends PartnerService {
         volatile boolean called = false;
         @Override
-        public void resendConfirmationEmail(String emailContato) {
+        public void reenviarEmailConfirmacao(String emailContato) {
             called = true;
         }
     }
@@ -37,7 +37,7 @@ public class PartnerControllerResendDirectTest {
 
         ResponseEntity<Void> resp = controller.resendConfirmation("teste@example.com", req);
         assertEquals(204, resp.getStatusCode().value());
-        assertTrue(svc.called, "Deveria ter chamado resendConfirmationEmail");
+        assertTrue(svc.called, "Deveria ter chamado reenviarEmailConfirmacao");
     }
 
     @Test
@@ -58,7 +58,7 @@ public class PartnerControllerResendDirectTest {
 
         ResponseEntity<Void> resp = controller.resendConfirmation("teste2@example.com", req);
         assertEquals(204, resp.getStatusCode().value());
-        assertFalse(svc.called, "Não deveria chamar resendConfirmationEmail quando bloqueado");
+        assertFalse(svc.called, "Não deveria chamar reenviarEmailConfirmacao quando bloqueado");
     }
 
     private static void setField(Object target, String fieldName, Object value) {
