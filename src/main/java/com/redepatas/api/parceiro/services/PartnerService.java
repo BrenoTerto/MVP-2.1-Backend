@@ -2,7 +2,10 @@ package com.redepatas.api.parceiro.services;
 
 import com.redepatas.api.cliente.repositories.ClientRepository;
 import com.redepatas.api.cliente.models.ClientRole;
+import com.redepatas.api.parceiro.dtos.PartnerDtos.AtualizarEnderecoPartnerDTO;
+import com.redepatas.api.parceiro.dtos.PartnerDtos.AtualizarPerfilPartnerDTO;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.DistanceDurationDto;
+import com.redepatas.api.parceiro.dtos.PartnerDtos.EnderecoPartnerResponseDto;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerProfileDto;
 import com.redepatas.api.parceiro.dtos.PartnerDtos.PartnerRecordDto;
 
@@ -44,6 +47,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.util.StringUtils;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.AuthenticationManager;
 
@@ -67,7 +71,7 @@ public class PartnerService {
         @Value("${api.key.google.maps}")
         private String API_KEY;
 
-        public String createPartner(PartnerRecordDto dto, MultipartFile image) {
+        public String criarParceiro(PartnerRecordDto dto, MultipartFile image) {
 
                 // Validar se o login é um CPF ou CNPJ válido
                 if (!ValidationUtil.isDocumentoValido(dto.login())) {
@@ -162,7 +166,7 @@ public class PartnerService {
                 return "Parceiro cadastrado com sucesso! Confirme seu e-mail para ativar o login.";
         }
 
-        public String updateBasic(String login, String name, String descricao) {
+        public String atualizarBasico(String login, String name, String descricao) {
                 var partner = partnerRepository.findByLogin(login);
                 if (partner == null) {
                         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Parceiro não encontrado");
@@ -177,42 +181,22 @@ public class PartnerService {
                 return "Perfil do parceiro atualizado com sucesso";
         }
 
-        public String updateAddress(String login, String rua, String bairro, String cidade, String estado,
+        public String atualizarEndereco(String login, String rua, String bairro, String cidade, String estado,
                         String cep, Integer numero, String complemento, String lugar) {
                 var partner = partnerRepository.findByLogin(login);
                 if (partner == null) {
                         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Parceiro não encontrado");
                 }
 
-                EnderecoPartner end = partner.getEndereco();
-                if (end == null) {
-                        end = new EnderecoPartner();
-                        end.setPartnerModel(partner);
-                        partner.setEndereco(end);
-                }
-                if (rua != null)
-                        end.setRua(rua);
-                if (bairro != null)
-                        end.setBairro(bairro);
-                if (cidade != null)
-                        end.setCidade(cidade);
-                if (estado != null)
-                        end.setEstado(estado);
-                if (cep != null)
-                        end.setCep(cep);
-                if (numero != null)
-                        end.setNumero(numero);
-                if (complemento != null)
-                        end.setComplemento(complemento);
-                if (lugar != null)
-                        end.setLugar(lugar);
+                var enderecoDto = new AtualizarEnderecoPartnerDTO(rua, bairro, cidade, estado, cep, numero, complemento,
+                                lugar);
+                aplicarAtualizacoesEndereco(partner, enderecoDto);
 
-                // save via partner cascade
                 partnerRepository.save(partner);
                 return "Endereço do parceiro atualizado com sucesso";
         }
 
-        public String changePassword(String login, String oldPassword, String newPassword,
+        public String alterarSenha(String login, String oldPassword, String newPassword,
                         AuthenticationManager authenticationManager) {
                 var partner = partnerRepository.findByLogin(login);
                 if (partner == null) {
@@ -231,21 +215,116 @@ public class PartnerService {
                 return "Senha alterada com sucesso";
         }
 
-        public PartnerProfileDto getProfile(String login) {
+        public PartnerProfileDto buscarPerfil(String login) {
                 var partner = partnerRepository.findByLogin(login);
                 if (partner == null) {
-                        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Parceiro nǜo encontrado");
+                        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Parceiro não encontrado");
                 }
+
+                return montarPerfil(partner);
+        }
+
+        public String atualizarPerfil(String login, AtualizarPerfilPartnerDTO dto) {
+                var partner = partnerRepository.findByLogin(login);
+                if (partner == null) {
+                        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Parceiro não encontrado");
+                }
+
+                if (StringUtils.hasText(dto.name())) {
+                        partner.setName(dto.name().trim());
+                }
+                if (dto.descricao() != null) {
+                        partner.setDescricao(dto.descricao().trim());
+                }
+
+                if (StringUtils.hasText(dto.numeroContato())) {
+                        partner.setNumeroContato(dto.numeroContato().trim());
+                }
+
+                if (dto.tipoPet() != null) {
+                        partner.setTipoPet(dto.tipoPet());
+                }
+
+                if (dto.categoria() != null) {
+                        partner.setTipo(dto.categoria());
+                }
+
+                aplicarAtualizacoesEndereco(partner, dto.endereco());
+
+                partnerRepository.save(partner);
+
+                return "Perfil do parceiro atualizado com sucesso";
+        }
+
+        private EnderecoPartnerResponseDto mapearEndereco(EnderecoPartner endereco) {
+                if (endereco == null) {
+                        return null;
+                }
+
+                return new EnderecoPartnerResponseDto(
+                                endereco.getIdEndereco(),
+                                endereco.getRua(),
+                                endereco.getNumero(),
+                                endereco.getBairro(),
+                                endereco.getCidade(),
+                                endereco.getEstado(),
+                                endereco.getCep(),
+                                endereco.getComplemento(),
+                                endereco.getLugar());
+        }
+
+        private void aplicarAtualizacoesEndereco(PartnerModel partner, AtualizarEnderecoPartnerDTO enderecoDto) {
+                if (enderecoDto == null) {
+                        return;
+                }
+
+                EnderecoPartner end = partner.getEndereco();
+                if (end == null) {
+                        end = new EnderecoPartner();
+                        end.setPartnerModel(partner);
+                        partner.setEndereco(end);
+                }
+
+                if (enderecoDto.rua() != null) {
+                        end.setRua(enderecoDto.rua());
+                }
+                if (enderecoDto.bairro() != null) {
+                        end.setBairro(enderecoDto.bairro());
+                }
+                if (enderecoDto.cidade() != null) {
+                        end.setCidade(enderecoDto.cidade());
+                }
+                if (enderecoDto.estado() != null) {
+                        end.setEstado(enderecoDto.estado());
+                }
+                if (enderecoDto.cep() != null) {
+                        end.setCep(enderecoDto.cep());
+                }
+                if (enderecoDto.numero() != null) {
+                        end.setNumero(enderecoDto.numero());
+                }
+                if (enderecoDto.complemento() != null) {
+                        end.setComplemento(enderecoDto.complemento());
+                }
+                if (enderecoDto.lugar() != null) {
+                        end.setLugar(enderecoDto.lugar());
+                }
+        }
+
+        private PartnerProfileDto montarPerfil(PartnerModel partner) {
+                EnderecoPartnerResponseDto enderecoDto = mapearEndereco(partner.getEndereco());
+
                 return new PartnerProfileDto(
                                 partner.getIdPartner(),
                                 partner.getName(),
                                 partner.getImageUrl(),
                                 partner.getEmailContato(),
                                 partner.getNumeroContato(),
-                                partner.getDescricao());
+                                partner.getDescricao(),
+                                enderecoDto);
         }
-        
-        public void resendConfirmationEmail(String emailContato) {
+
+        public void reenviarEmailConfirmacao(String emailContato) {
                 if (emailContato == null || emailContato.isBlank()) {
                         return;
                 }

@@ -8,6 +8,6 @@ public record PartnerProfileDto(
     String imageUrl,
     String emailContato,
     String numeroContato,
-    String descricao
+    String descricao,
+    EnderecoPartnerResponseDto endereco
 ) {}
-
